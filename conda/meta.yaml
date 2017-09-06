@@ -1,0 +1,24 @@
+package:
+  name: gemini_cal_manager
+  version: "0.9.9"
+
+source:
+  fn: gemini_cal_manager.tar.xz
+  url: file:///tmp/gemini_cal_manager.tar.xz
+  md5: ff59609c5cdeb6715d6b6fc9ac5e0442
+
+build:
+  noarch_python: True
+
+requirements:
+  build:
+    - python
+    - setuptools
+  run:
+    - python
+    - sqlalchemy
+    - astropy
+
+about:
+  license: BSD
+  license_file: LICENSE
