@@ -18,6 +18,7 @@ import astrodata
 import gemini_instruments
 
 import os
+from os.path import dirname, abspath, basename
 
 instrument_table = {
     # Instrument: (Name for debugging, Class)
@@ -190,3 +191,37 @@ def add_diskfile_entry(session, fileobj, filename, path, fullpath):
     session.commit()
 
     return True
+
+def remove_file(session, path):
+    directory = abspath(dirname(path))
+    filename = basename(path)
+
+    objects_to_delete = []
+    try:
+        file_obj = session.query(File).filter(File.name == filename).one()
+        objects_to_delete.append(file_obj)
+    except NoResultFound:
+        raise LocalManagerError(ERROR_DIDNT_FIND,
+                                "Could not find any {} file in the database".format(filename))
+    else:
+        # Look up all diskfile entries related to the target filename, add them to remove list
+        diskfiles = session.query(DiskFile).filter(DiskFile.file_id == file_obj.id).all()
+        objects_to_delete.extend(diskfiles)
+        # Look up all headers pointing to the selected diskfiles, add them
+        headers = []
+        for df_obj in diskfiles:
+            headers.extend(session.query(Header).filter(Header.diskfile_id == df_obj.id).all())
+        objects_to_delete.extend(headers)
+        # Finally, look up the instrument-specific tables
+        instruments = []
+        for hd_obj in headers:
+            try:
+                name, instClass = instrument_table[hd_obj.instrument]
+                instruments.extend(session.query(instClass).filter(instClass.header_id == hd_obj.id).all())
+            except KeyError:
+                # This instrument has no specific table
+                pass
+        objects_to_delete.extend(instruments)
+        for obj in reversed(objects_to_delete):
+            session.delete(obj)
+        session.commit()
