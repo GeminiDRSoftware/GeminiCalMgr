@@ -13,6 +13,7 @@ from ..orm.f2 import F2
 from ..orm.gsaoi import Gsaoi
 from ..orm.nici import Nici
 from ..orm.gpi import Gpi
+from ..orm.ghost import Ghost
 
 import astrodata
 import gemini_instruments
@@ -23,6 +24,7 @@ from os.path import dirname, abspath, basename
 instrument_table = {
     # Instrument: (Name for debugging, Class)
     'F2':       ("F2", F2),
+    'GHOST':    ("GHOST", Ghost),
     'GMOS-N':   ("GMOS", Gmos),
     'GMOS-S':   ("GMOS", Gmos),
     'GNIRS':    ("GNIRS", Gnirs),

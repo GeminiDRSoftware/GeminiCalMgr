@@ -13,6 +13,7 @@ from .niri import Niri
 from .gnirs import Gnirs
 from .nifs import Nifs
 from .f2 import F2
+from .ghost import Ghost
 from .gpi import Gpi
 from .gsaoi import Gsaoi
 from .nici import Nici
@@ -33,6 +34,7 @@ def create_tables(session):
     Nifs.metadata.create_all(bind=pg_db)
     Gnirs.metadata.create_all(bind=pg_db)
     F2.metadata.create_all(bind=pg_db)
+    Ghost.metadata.create_all(bind=pg_db)
     Gpi.metadata.create_all(bind=pg_db)
     Gsaoi.metadata.create_all(bind=pg_db)
     Michelle.metadata.create_all(bind=pg_db)
