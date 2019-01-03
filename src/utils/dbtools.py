@@ -1,3 +1,11 @@
+#
+#                                                                        DRAGONS
+#
+#                                                                     dbtools.py
+# ------------------------------------------------------------------------------
+import os
+from os.path import dirname, abspath, basename
+
 from ..fits_storage_config import storage_root
 
 from sqlalchemy.orm.exc import ObjectDeletedError, NoResultFound
@@ -18,9 +26,7 @@ from ..orm.ghost import Ghost
 import astrodata
 import gemini_instruments
 
-import os
-from os.path import dirname, abspath, basename
-
+# ------------------------------------------------------------------------------
 instrument_table = {
     # Instrument: (Name for debugging, Class)
     'F2':       ("F2", F2),
@@ -35,7 +41,7 @@ instrument_table = {
     'NIFS':     ("NIFS", Nifs),
     'NIRI':     ("NIRI", Niri),
     }
-
+# ------------------------------------------------------------------------------
 
 def check_present(session, filename):
     """
@@ -81,15 +87,16 @@ def need_to_add_diskfile(session, fileobj):
                 # No change
                 return False
             else:
-                # We could fetch the file and do a local md5 check here if we want
-                # Set the present and canonical flags on the current one to false and create a new entry
+                # We could fetch the file and do a local md5 check here if we
+                # want. Set the present and canonical flags on the current one
+                # to false and create a new entry.
                 diskfile.present = False
                 diskfile.canonical = False
                 session.commit()
                 return True
 
         # Has the file changed since we last ingested it?
-        # By default check lastmod time first. There is a subtlety wrt timezones here.
+        # By default check lastmod time first. There is a subtlety wrt timezones.
         if (diskfile.lastmod.replace(tzinfo=None) != diskfile.get_lastmod()):
             # The flags suggest file modification
             result = need_to_add_diskfile_p(diskfile.get_file_md5())
@@ -98,7 +105,8 @@ def need_to_add_diskfile(session, fileobj):
         # No not present, insert into diskfile table
         result = True
 
-        # Check to see if there is are older non-present but canonical versions to mark non-canonical
+        # Check to see if there is are older non-present but canonical versions
+        # to mark non-canonical.
         olddiskfiles = session.query(DiskFile)\
                             .filter(DiskFile.canonical == True)\
                             .filter(DiskFile.file_id == fileobj.id)\
@@ -121,10 +129,19 @@ def ingest_file(session, filename, path):
     has not been modified since it was last ingested, then this function
     does not modify the database.
 
-    filename: the filename of the file to ingest
-    path: the path to the file to ingest
+    Parameters
+    ----------
+    filename: <str> 
+        Filename of the file to ingest
 
-    return value is a boolean to say whether we added a new diskfile or not
+    path: <str>
+        Path to the file to ingest
+
+
+    Return
+    ------
+    <bool>,  Success or fail on adding a new diskfile or not.
+
     """
 
     # First, sanity check if the file actually exists
@@ -152,13 +169,14 @@ def ingest_file(session, filename, path):
     return False
 
 def add_diskfile_entry(session, fileobj, filename, path, fullpath):
-    # Instantiating the DiskFile object with a bzip2 filename will trigger creation of the unzipped cache file too.
+    # Instantiating the DiskFile object with a bzip2 filename will trigger
+    # creation of the unzipped cache file too.
     diskfile = DiskFile(fileobj, filename, path)
     session.add(diskfile)
     session.commit()
 
-    # Instantiate an astrodata object here and pass it in to the things that need it
-    # These are expensive to instantiate each time
+    # Instantiate an astrodata object here and pass it in to the things that
+    # need it. These are expensive to instantiate each time.
     if diskfile.uncompressed_cache_file:
         fullpath_for_ad = diskfile.uncompressed_cache_file
     else:
@@ -169,7 +187,6 @@ def add_diskfile_entry(session, fileobj, filename, path, fullpath):
     except Exception as e:
         # Failed to open astrodata object
         print(e)
-
         return
 
     # This will use the diskfile ad_object if it exists, else
@@ -195,6 +212,7 @@ def add_diskfile_entry(session, fileobj, filename, path, fullpath):
     return True
 
 def remove_file(session, path):
+    not_found = "Could not find any {} file in the database"
     directory = abspath(dirname(path))
     filename = basename(path)
 
@@ -203,10 +221,10 @@ def remove_file(session, path):
         file_obj = session.query(File).filter(File.name == filename).one()
         objects_to_delete.append(file_obj)
     except NoResultFound:
-        raise LocalManagerError(ERROR_DIDNT_FIND,
-                                "Could not find any {} file in the database".format(filename))
+        raise IOError(not_found.format(filename))
     else:
-        # Look up all diskfile entries related to the target filename, add them to remove list
+        # Look up all diskfile entries related to the target filename,
+        # add them to remove list.
         diskfiles = session.query(DiskFile).filter(DiskFile.file_id == file_obj.id).all()
         objects_to_delete.extend(diskfiles)
         # Look up all headers pointing to the selected diskfiles, add them
