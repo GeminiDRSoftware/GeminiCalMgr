@@ -4,11 +4,17 @@
 #                                                                     dbtools.py
 # ------------------------------------------------------------------------------
 import os
-from os.path import dirname, abspath, basename
+from os.path import dirname
+from os.path import abspath
+from os.path import basename
+
+from sqlalchemy.orm.exc import NoResultFound
+
+import astrodata
+import gemini_instruments
 
 from ..fits_storage_config import storage_root
 
-from sqlalchemy.orm.exc import ObjectDeletedError, NoResultFound
 from ..orm.file import File
 from ..orm.diskfile import DiskFile
 from ..orm.header import Header
@@ -22,9 +28,6 @@ from ..orm.gsaoi import Gsaoi
 from ..orm.nici import Nici
 from ..orm.gpi import Gpi
 from ..orm.ghost import Ghost
-
-import astrodata
-import gemini_instruments
 
 # ------------------------------------------------------------------------------
 instrument_table = {
