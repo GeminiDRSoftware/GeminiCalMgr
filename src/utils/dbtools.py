@@ -176,7 +176,6 @@ def add_diskfile_entry(session, fileobj, filename, path, fullpath):
     # creation of the unzipped cache file too.
     diskfile = DiskFile(fileobj, filename, path)
     session.add(diskfile)
-    session.commit()
 
     # Instantiate an astrodata object here and pass it in to the things that
     # need it. These are expensive to instantiate each time.
@@ -190,7 +189,11 @@ def add_diskfile_entry(session, fileobj, filename, path, fullpath):
     except Exception as e:
         # Failed to open astrodata object
         print(e)
+        session.rollback()
         return
+
+    # commit DiskFile before we make the header
+    session.commit()
 
     # This will use the diskfile ad_object if it exists, else
     # it will use the DiskFile unzipped cache file if it exists
