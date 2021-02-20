@@ -45,6 +45,18 @@ instrument_table = {
     'NIRI':     ("NIRI", Niri),
     }
 # ------------------------------------------------------------------------------
+# This should be kept sync'd with recipe_system.cal_service.caldb.py
+REQUIRED_TAG_DICT = {'processed_arc': ['PROCESSED', 'ARC'],
+                     'processed_bias': ['PROCESSED', 'BIAS'],
+                     'processed_dark': ['PROCESSED', 'DARK'],
+                     'processed_flat': ['PROCESSED', 'FLAT'],
+                     'processed_fringe': ['PROCESSED', 'FRINGE'],
+                     'processed_standard': ['PROCESSED', 'STANDARD'],
+                     'processed_slitillum': ['PROCESSED', 'SLITILLUM'],
+                     'bpm': ['BPM'],
+                     'mask': ['MASK'],
+                     }
+# ------------------------------------------------------------------------------
 
 def check_present(session, filename):
     """
@@ -191,6 +203,16 @@ def add_diskfile_entry(session, fileobj, filename, path, fullpath):
         print(e)
         session.rollback()
         return
+
+    # Check that it has the correct tags to be identified as a retrievable
+    # type of calibration (otherwise it will never be retrieved)
+    tags = diskfile.ad_object.tags
+    for valid_tags in REQUIRED_TAG_DICT.values():
+        if tags.issuperset(valid_tags):
+            break
+    else:
+        session.rollback()
+        raise ValueError("Tags do not indicate this is a valid calibration file.")
 
     # commit DiskFile before we make the header
     session.commit()
