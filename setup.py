@@ -5,7 +5,7 @@ from setuptools.command.test import test as TestCommand
 import subprocess
 import sys
 import os
-from src import __version__
+from gemini_calmgr import __version__
 
 setup(
     name='GeminiCalMgr',
@@ -19,6 +19,6 @@ setup(
                 'gemini_calmgr.orm',
                 'gemini_calmgr.cal',
                 'gemini_calmgr.utils'],
-    package_dir = {'gemini_calmgr': 'src'},
+    package_dir = {'gemini_calmgr': 'gemini_calmgr'},
 #    install_requires = ['sqlalchemy >= 0.9.9', 'pyfits']
 )
