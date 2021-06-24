@@ -1,1 +1,0 @@
-../../../fits_storage/orm/gmos.py

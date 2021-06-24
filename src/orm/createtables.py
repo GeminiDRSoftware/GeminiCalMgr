@@ -4,21 +4,21 @@ in the Fits Storage System.
 """
 import sqlalchemy
 
-from . import pg_db
-from .file import File
-from .diskfile import DiskFile
-from .header import Header
-from .gmos import Gmos
-from .niri import Niri
-from .gnirs import Gnirs
-from .nifs import Nifs
-from .f2 import F2
-from .ghost import Ghost
-from .gpi import Gpi
-from .gsaoi import Gsaoi
-from .nici import Nici
-from .michelle import Michelle
-from .calcache import CalCache
+from gemini_obs_db import pg_db
+from gemini_obs_db.file import File
+from gemini_obs_db.diskfile import DiskFile
+from gemini_obs_db.header import Header
+from gemini_obs_db.gmos import Gmos
+from gemini_obs_db.niri import Niri
+from gemini_obs_db.gnirs import Gnirs
+from gemini_obs_db.nifs import Nifs
+from gemini_obs_db.f2 import F2
+from gemini_obs_db.ghost import Ghost
+from gemini_obs_db.gpi import Gpi
+from gemini_obs_db.gsaoi import Gsaoi
+from gemini_obs_db.nici import Nici
+from gemini_obs_db.michelle import Michelle
+from gemini_obs_db.calcache import CalCache
 
 def create_tables(session):
     """
