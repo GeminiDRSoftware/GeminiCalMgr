@@ -13,21 +13,19 @@ from sqlalchemy.orm.exc import NoResultFound
 import astrodata
 import gemini_instruments
 
+from gemini_obs_db.f2 import F2
+from gemini_obs_db.ghost import Ghost
+from gemini_obs_db.gmos import Gmos
+from gemini_obs_db.gnirs import Gnirs
+from gemini_obs_db.gpi import Gpi
+from gemini_obs_db.gsaoi import Gsaoi
+from gemini_obs_db.michelle import Michelle
+from gemini_obs_db.nici import Nici
+from gemini_obs_db.nifs import Nifs
+from gemini_obs_db.niri import Niri
+
 from ..fits_storage_config import storage_root
 
-from ..orm.file import File
-from ..orm.diskfile import DiskFile
-from ..orm.header import Header
-from ..orm.gmos import Gmos
-from ..orm.gnirs import Gnirs
-from ..orm.niri import Niri
-from ..orm.nifs import Nifs
-from ..orm.michelle import Michelle
-from ..orm.f2 import F2
-from ..orm.gsaoi import Gsaoi
-from ..orm.nici import Nici
-from ..orm.gpi import Gpi
-from ..orm.ghost import Ghost
 
 # ------------------------------------------------------------------------------
 instrument_table = {

@@ -170,8 +170,8 @@ class CalibrationF2(Calibration):
         """
         Get matching photometric standards for an F2 observation.
 
-        This matches photometric standards that are `OBJECT` s and `partnerCal`, matching the F2 `filter_name` and
-        `lyot_stop`and within a day
+        This matches photometric standards that are ``OBJECT`` s and ``partnerCal``, matching the F2 ``filter_name`` and
+        ``lyot_stop`` and within a day
 
         Parameters
         ----------

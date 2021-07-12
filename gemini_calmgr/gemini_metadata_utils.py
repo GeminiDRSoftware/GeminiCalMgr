@@ -982,22 +982,24 @@ def previous_semester(semester):
         return str(year) + 'B'
 
 
-def site_monitor(string):
+def site_monitor(instrument: str):
     """
+    Check if this is a site monitoring instrument.
+
     Parameters
     ----------
-    string: <str>
-        The name of the instrument that is a sky monitor. Currently, this
+    instrument: str
+        The name of the instrument that may be a sky monitor. Currently, this
         supports only GS_ALLSKYCAMERA. The string will generally be that
         returned by the astrodata descriptor, ad.instrument().
 
-    Return
-    ------
-    yes: <bool>
+    Returns
+    -------
+    yes: bool
         Returns True when GS_ALLSKYCAMERA is passed.
 
     """
-    if string == 'GS_ALLSKYCAMERA':
+    if instrument == 'GS_ALLSKYCAMERA':
         return True
     else:
         return False

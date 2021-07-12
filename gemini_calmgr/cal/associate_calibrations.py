@@ -95,8 +95,8 @@ def associate_cals(session, headers, caltype="all", recurse_level=0, full_query=
 
 def associate_cals_from_cache(session, headers, caltype="all", recurse_level=0, full_query=False):
     """
-    This function takes a list of :class:`fits_storage.orm.header.Header`s from a search result and
-    generates a list of the associated calibration :class:`fits_storage.orm.header.Header`s
+    This function takes a list of :class:`fits_storage.orm.header.Header` from a search result and
+    generates a list of the associated calibration :class:`fits_storage.orm.header.Header`
     We return a priority ordered (best first) list
 
     This is the same interface as associate_cals above, but this version
@@ -123,7 +123,7 @@ def associate_cals_from_cache(session, headers, caltype="all", recurse_level=0, 
     Returns
     -------
 
-    list of :class:`fits_storage.orm.header.Header` calibration records or, if `full_query`, list of tuples of :class:`fits_storage.orm.header.Header`, :class:`fits_storage.orm.diskfile.DiskFile`, :class:`fits_storage.orm.file.File`
+    list of :class:`fits_storage.orm.header.Header` calibration records or, if ``full_query``, list of tuples of :class:`fits_storage.orm.header.Header`, :class:`fits_storage.orm.diskfile.DiskFile`, :class:`fits_storage.orm.file.File`
 
     """
     # We can do this a bit more efficiently than the non-cache version, as we can do one

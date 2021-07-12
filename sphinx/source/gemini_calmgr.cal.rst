@@ -1,11 +1,11 @@
 gemini\_calmgr.cal package
-=========================
+==========================
 
 Submodules
 ----------
 
 gemini\_calmgr.cal.associate\_calibrations module
-------------------------------------------------
+-------------------------------------------------
 
 .. automodule:: gemini_calmgr.cal.associate_calibrations
    :members:
@@ -21,7 +21,7 @@ gemini\_calmgrcal.calibration module
    :show-inheritance:
 
 gemini\_calmgr.cal.calibration\_f2 module
-----------------------------------------
+-----------------------------------------
 
 .. automodule:: gemini_calmgr.cal.calibration_f2
    :members:
@@ -29,7 +29,7 @@ gemini\_calmgr.cal.calibration\_f2 module
    :show-inheritance:
 
 gemini\_calmgr.cal.calibration\_ghost module
--------------------------------------------
+--------------------------------------------
 
 .. automodule:: gemini_calmgr.cal.calibration_ghost
    :members:
@@ -37,7 +37,7 @@ gemini\_calmgr.cal.calibration\_ghost module
    :show-inheritance:
 
 gemini\_calmgr.cal.calibration\_gmos module
-------------------------------------------
+-------------------------------------------
 
 .. automodule:: gemini_calmgr.cal.calibration_gmos
    :members:
@@ -45,7 +45,7 @@ gemini\_calmgr.cal.calibration\_gmos module
    :show-inheritance:
 
 gemini\_calmgr.cal.calibration\_gnirs module
--------------------------------------------
+--------------------------------------------
 
 .. automodule:: gemini_calmgr.cal.calibration_gnirs
    :members:
@@ -53,7 +53,7 @@ gemini\_calmgr.cal.calibration\_gnirs module
    :show-inheritance:
 
 gemini\_calmgr.cal.calibration\_gpi module
------------------------------------------
+------------------------------------------
 
 .. automodule:: gemini_calmgr.cal.calibration_gpi
    :members:
@@ -61,7 +61,7 @@ gemini\_calmgr.cal.calibration\_gpi module
    :show-inheritance:
 
 gemini\_calmgr.cal.calibration\_gsaoi module
--------------------------------------------
+--------------------------------------------
 
 .. automodule:: gemini_calmgr.cal.calibration_gsaoi
    :members:
@@ -69,7 +69,7 @@ gemini\_calmgr.cal.calibration\_gsaoi module
    :show-inheritance:
 
 gemini\_calmgr.cal.calibration\_michelle module
-----------------------------------------------
+-----------------------------------------------
 
 .. automodule:: gemini_calmgr.cal.calibration_michelle
    :members:
@@ -77,7 +77,7 @@ gemini\_calmgr.cal.calibration\_michelle module
    :show-inheritance:
 
 gemini\_calmgr.cal.calibration\_nici module
-------------------------------------------
+-------------------------------------------
 
 .. automodule:: gemini_calmgr.cal.calibration_nici
    :members:
@@ -85,7 +85,7 @@ gemini\_calmgr.cal.calibration\_nici module
    :show-inheritance:
 
 gemini\_calmgr.cal.calibration\_nifs module
-------------------------------------------
+-------------------------------------------
 
 .. automodule:: gemini_calmgr.cal.calibration_nifs
    :members:
@@ -93,7 +93,7 @@ gemini\_calmgr.cal.calibration\_nifs module
    :show-inheritance:
 
 gemini\_calmgr.cal.calibration\_niri module
-------------------------------------------
+-------------------------------------------
 
 .. automodule:: gemini_calmgr.cal.calibration_niri
    :members:
