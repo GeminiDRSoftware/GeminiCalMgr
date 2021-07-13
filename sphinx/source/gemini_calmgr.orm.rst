@@ -1,18 +1,10 @@
-gemini\_calmgr.orm package
-==========================
+gemini\_calmgr.orm
+==================
 
-gemini\_calmgr.orm.createtables module
---------------------------------------
+gemini\_calmgr.orm.createtables
+-------------------------------
 
 .. automodule:: gemini_calmgr.orm.createtables
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: gemini_calmgr.orm
    :members:
    :undoc-members:
    :show-inheritance:

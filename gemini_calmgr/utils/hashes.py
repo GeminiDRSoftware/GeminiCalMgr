@@ -21,7 +21,8 @@ def md5sum_size_fp(fobj):
 
     Returns
     -------
-    str, int : md5 checksum and file size
+    str, int
+        md5 checksum and file size
     """
     # This is the block size by which we read chunks from the file, in bytes
     block = 1000000 # 1 MB
@@ -51,7 +52,8 @@ def md5sum(filename):
 
     Returns
     -------
-    str, int : md5 sum and size of the data
+    str, int
+        md5 sum and size of the data
     """
 
     with open(filename, 'rb') as filep:
@@ -70,7 +72,8 @@ def md5sum_size_bz2(filename):
 
     Returns
     -------
-    str, int : md5 sum and size of the uncompressed data
+    str, int
+        md5 sum and size of the uncompressed data
     """
 
     with bz2.BZ2File(filename, 'rb') as filep:

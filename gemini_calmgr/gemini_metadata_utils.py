@@ -56,6 +56,8 @@ gemini_telescopes = {
     'gemini-south': 'Gemini-South'
     }
 # ------------------------------------------------------------------------------
+
+
 def gemini_telescope(string):
     """
     If the string argument matches a gemini telescope name, then returns the 
@@ -78,6 +80,7 @@ def gemini_telescope(string):
         return gemini_telescopes.get(string.lower())
     except AttributeError:
         return None
+
 
 # A utility function for matching instrument names
 hqcre = re.compile(r'^[Hh][Oo][Kk][Uu][Pp]([Aa])+(\+)*[Qq][Uu][Ii][Rr][Cc]$')
@@ -106,6 +109,7 @@ gemini_instrument_dict = {
     'alopeke':    'ALOPEKE',
     'zorro':      'ZORRO'
     }
+
 
 def gemini_instrument(string, gmos=False, other=False):
     """
@@ -153,6 +157,7 @@ def gemini_instrument(string, gmos=False, other=False):
                 retary = 'GMOS'
 
     return retary
+
 
 def get_fake_ut(transit="14:00:00"):
     """
@@ -289,6 +294,8 @@ def gemini_date(string, as_datetime=False, offset=ZERO_OFFSET):
 
 
 racre = re.compile(r'^([012]\d):([012345]\d):([012345]\d)(\.?\d*)$')
+
+
 def ratodeg(string):
     """
     A utility function that recognises an RA: HH:MM:SS.sss
@@ -322,7 +329,10 @@ def ratodeg(string):
 
     return degs
 
+
 deccre = re.compile(r'^([+-]?)(\d\d):([012345]\d):([012345]\d)(\.?\d*)$')
+
+
 def dectodeg(string):
     """
     A utility function that recognises a Dec: [+-]DD:MM:SS.sss
@@ -359,6 +369,7 @@ def dectodeg(string):
 
     return degs
 
+
 def degtora(decimal):
     """
     Convert decimal degrees to RA HH:MM:SS.ss string
@@ -375,6 +386,7 @@ def degtora(decimal):
     seconds = decimal
 
     return "%02d:%02d:%05.2f" % (hours, minutes, seconds)
+
 
 def degtodec(decimal):
     """
@@ -395,8 +407,9 @@ def degtodec(decimal):
     return "%s%02d:%02d:%05.2f" % (sign, degrees, minutes, seconds)
 
 
-
 dmscre = re.compile(r'^([+-]?)(\d*):([012345]\d):([012345]\d)(\.?\d*)$')
+
+
 def dmstodeg(string):
     """
     A utility function that recognises a generic [+-]DD:MM:SS.sss
@@ -432,7 +445,10 @@ def dmstodeg(string):
 
     return degs
 
+
 srcre = re.compile(r"([\d.]+)\s*(d|D|degs|Degs)?")
+
+
 def srtodeg(string):
     """
     Converts a Search Radius in arcseconds to decimal degrees.
@@ -462,6 +478,7 @@ def srtodeg(string):
         value /= 3600.0
 
     return value
+
 
 def gemini_daterange(string, as_datetime=False, offset=ZERO_OFFSET):
     """
@@ -505,6 +522,8 @@ def gemini_daterange(string, as_datetime=False, offset=ZERO_OFFSET):
 
 
 procmode_codes = ('sq', 'ql', 'qa')
+
+
 def gemini_procmode(string):
     """
     A utility function for matching Gemini Processed Mode.
@@ -525,8 +544,11 @@ def gemini_procmode(string):
     """
     return string if string in procmode_codes else None
 
+
 obs_types = ('DARK', 'ARC', 'FLAT', 'BIAS', 'OBJECT', 'PINHOLE', 'RONCHI', 'CAL', 'FRINGE', 'MASK', 'STANDARD',
              'SLITILLUM')
+
+
 def gemini_observation_type(string):
     """
     A utility function for matching Gemini ObsTypes.
@@ -551,7 +573,10 @@ def gemini_observation_type(string):
     """
     return string if string in obs_types else None
 
+
 obs_classes = ('dayCal', 'partnerCal', 'acqCal', 'acq', 'science', 'progCal')
+
+
 def gemini_observation_class(string):
     """
     A utility function matching Gemini ObsClasses.
@@ -573,10 +598,13 @@ def gemini_observation_class(string):
     """
     return string if string in obs_classes else None
 
+
 reduction_states = ('RAW', 'PREPARED', 'PROCESSED_FLAT', 'PROCESSED_BIAS',
                     'PROCESSED_FRINGE', 'PROCESSED_ARC', 'PROCESSED_DARK',
                     'PROCESSED_TELLURIC', 'PROCESSED_SCIENCE', 'PROCESSED_STANDARD',
                     'PROCESSED_SLITILLUM', 'PROCESSED_UNKNOWN')
+
+
 def gemini_reduction_state(string):
     """
     A utility function matching Gemini reduction states.
@@ -597,6 +625,7 @@ def gemini_reduction_state(string):
     """
     return string if string in reduction_states else None
 
+
 cal_types = (
     'bias', 'dark', 'flat', 'arc', 'processed_bias', 'processed_dark',
     'processed_flat', 'processed_arc', 'processed_fringe', 'pinhole_mask',
@@ -605,6 +634,8 @@ cal_types = (
     'mask', 'polarization_standard', 'astrometric_standard', 'polarization_flat',
     'processed_standard', 'processed_slitillum', 'slitillum',
     )
+
+
 def gemini_caltype(string):
     """
     A utility function matching Gemini calibration types.
@@ -629,7 +660,10 @@ def gemini_caltype(string):
     """
     return string if string in cal_types else None
 
+
 gmos_gratings = ('MIRROR', 'B480', 'B600', 'R600', 'R400', 'R831', 'R150', 'B1200')
+
+
 def gmos_gratingname(string):
     """
     A utility function matching a GMOS Grating name. This could be expanded to
@@ -655,12 +689,17 @@ def gmos_gratingname(string):
     """
     return string if string in gmos_gratings else ''
 
+
 gmosfpmaskcre = re.compile(r'^G[NS](20\d\d)[AB](.)(\d\d\d)-(\d\d)$')
+
+
 gmos_facility_plane_masks = (
     'NS2.0arcsec', 'IFU-R', 'IFU-B', 'focus_array_new', 'Imaging', '2.0arcsec',
     'NS1.0arcsec', 'NS0.75arcsec', '5.0arcsec', '1.5arcsec', 'IFU-2', 'NS1.5arcsec',
     '0.75arcsec', '1.0arcsec', '0.5arcsec'
     )
+
+
 def gmos_focal_plane_mask(string):
     """
     A utility function matching gmos focal plane mask names. This could be expanded to
@@ -677,8 +716,14 @@ def gmos_focal_plane_mask(string):
 
     return None
 
+
 fitsfilenamecre = re.compile(r'^([NS])(20\d\d)([01]\d[0123]\d)(S)(\d\d\d\d)([\d-]*)(\w*)(?P<fits>.fits)?$')
-vfitsfilenamecre = re.compile(r'^(20)?(\d\d)(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)(\d\d)_(\d+)(?P<fits>.fits)?$')
+
+
+vfitsfilenamecre = re.compile(r'^(20)?(\d\d)(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)'
+                              r'(\d\d)_(\d+)(?P<fits>.fits)?$')
+
+
 def gemini_fitsfilename(string):
     """
     A utility function matching Gemini data fits filenames
@@ -699,6 +744,7 @@ def gemini_fitsfilename(string):
 
     return retval
 
+
 def gemini_binning(string):
     """
     A utility function that matches a binning string -
@@ -709,6 +755,7 @@ def gemini_binning(string):
     a, sep, b = string.partition('x')
 
     return string if (a and b and (a in valid) and (b in valid)) else ''
+
 
 def percentilestring(num, type):
     """
@@ -732,7 +779,9 @@ def percentilestring(num, type):
 # With 3 groups - program_id, obsnum, dlnum
 # This also allows for an optional -blah on the end (processed biases etc)
 
+
 dlcre = re.compile(r'^((?:%s)|(?:%s))-(\d*)-(\d*)(?:-(\w*))?$' % (calengre, scire))
+
 
 class GeminiDataLabel:
     """
@@ -857,7 +906,6 @@ class GeminiProgram:
     is_ft = False
     is_ds = False
 
-
     def __init__(self, program_id):
         self.program_id = program_id
 
@@ -895,6 +943,7 @@ class GeminiProgram:
             self.valid = False
             self.is_eng = True
 
+
 def get_date_offset():
     """
     This function is used to add set offsets to the dates. The aim is to get the
@@ -917,7 +966,30 @@ def get_date_offset():
     # I think this interacted with the Chile today changes to cause the missing starts in Hawaii for summary
     return datetime.timedelta(hours=14) + datetime.timedelta(seconds=zone) - ONEDAY_OFFSET
 
+
 def get_time_period(start, end=None, as_date=False):
+    """
+    Get a time period from the given start and end dates.
+
+    This will normalize the given date range to a tuple
+    of either dates or strings, according to the `as_date`
+    parameter.  If `end` is not sent, or matches `start`,
+    it is assumed we want a 1 day range.  Out of order
+    dates are also corrected.
+
+    Parameters
+    ----------
+    start : str
+        Start date as a string of form YYYYMMDD
+    end : str
+        End date as a string of form YYYYMMDD
+    as_date : bool
+        If True, return a tuple of `datetime` objects, else a tuple of `str`
+
+    Returns
+    -------
+    tuple of `str` or tuple of `datetime` if `as_date` is `True`
+    """
     startdt = gemini_date(start, offset=get_date_offset(), as_datetime=True)
     if end is None:
         enddt = startdt
@@ -935,12 +1007,41 @@ def get_time_period(start, end=None, as_date=False):
 
     return startdt, enddt
 
+
 def gemini_time_period_from_range(rng, as_date=False):
+    """
+    Return a start/stop time range for the given string representation.
+
+    This expects a rng like 20200101-20200115.
+
+    Parameters
+    ----------
+    rng : str
+        Date range expressed as a string YYYYMMDD-YYYYMMDD
+    as_date: bool
+        If True, return the result as dates.  Otherwise, as strings
+
+    Returns
+    -------
+    tuple of strings, or tuple of dates if `as_date` is `True`
+    """
     a, _, b = gemini_daterange(rng).partition('-')
     return get_time_period(a, b, as_date)
 
-def gemini_semester(date):
-    """ Return the semester name that contains date """
+
+def gemini_semester(date: datetime):
+    """
+    Get the semester name that contains date
+
+    Parameters
+    ----------
+    date: datetime
+        The date to find the containing semester of
+
+    Returns
+    -------
+    str : Semester containing the date
+    """
     if date.month >= 2 and date.month <= 7:
         letter = 'A'
         year = date.year
@@ -953,19 +1054,23 @@ def gemini_semester(date):
 
     return str(year) + letter
 
+
 semester_re = r'(20\d\d)([AB])'
-def previous_semester(semester):
+
+
+def previous_semester(semester: str):
     """
     Given a semester string, e.g., 2016A, return the previous semester.
     E.g., 2015B
 
     Parameters
     ----------
-    semester: <str> Semester name
+    semester: str
+        Semester name
 
     Returns
     -------
-    semester - 1, <str>,
+    str:
         the semester name prior to the passed semester.
 
     """

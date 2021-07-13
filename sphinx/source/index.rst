@@ -7,7 +7,7 @@ Welcome to GeminiCalMgr's documentation!
    :caption: Contents:
 
    changelog.rst
-
+   gemini_calmgr.rst
 
 Indices and tables
 ==================

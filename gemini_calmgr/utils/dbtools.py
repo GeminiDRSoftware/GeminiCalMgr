@@ -56,12 +56,26 @@ REQUIRED_TAG_DICT = {'processed_arc': ['PROCESSED', 'ARC'],
                      }
 # ------------------------------------------------------------------------------
 
+
 def check_present(session, filename):
     """
     Check to see if the named file is present in the database and
     marked as present in the diskfile table.
     If so, checks to see if it's actually on disk and if not
     marks it as not present in the diskfile table
+
+    Parameters
+    ----------
+    session : :class:`~sqlalchemy.orm.session.Session`
+        Database session to check against
+    filename : str
+        Name of the file to look for
+
+    Returns
+    -------
+    bool
+        True if file has a :class:`~gemini_obs_db.diskfile.DiskFile` record
+        where `present` is `True`, else `False`
     """
 
     # Search for file object
@@ -81,7 +95,22 @@ def check_present(session, filename):
     except NoResultFound:
         pass
 
+
 def need_to_add_diskfile(session, fileobj):
+    """
+    Check if we need to add a diskfile record for the given :class:`~fitsstoragedb.orm.file.File` record.
+
+    Parameters
+    ----------
+    session : :class:`~sqlalchemy.orm.session.Session`
+        Database session to operate on.
+    fileobj : :class:`~gemini_obs_db.file.File`
+
+    Returns
+    -------
+    bool
+        True if we need to add a :class:`~gemini_obs_db.diskfile.DiskFile`
+    """
     # See if a diskfile for this file already exists and is present
     query = session.query(DiskFile)\
                 .filter(DiskFile.file_id == fileobj.id)\
@@ -132,6 +161,7 @@ def need_to_add_diskfile(session, fileobj):
 
     return result
 
+
 def ingest_file(session, filename, path):
     """
     Ingests a file into the database. If the file isn't known to the database
@@ -144,16 +174,18 @@ def ingest_file(session, filename, path):
 
     Parameters
     ----------
-    filename: <str> 
+    session : :class:`~sqlalchemy.orm.session.Session`
+        Database session to operate on
+    filename : str
         Filename of the file to ingest
 
-    path: <str>
+    path : str
         Path to the file to ingest
 
-
-    Return
-    ------
-    <bool>,  Success or fail on adding a new diskfile or not.
+    Returns
+    -------
+    bool
+        True of succeeded or False for failing to add a new :class:`~gemini_obs_db.diskfile.DiskFile`.
 
     """
 
@@ -181,7 +213,24 @@ def ingest_file(session, filename, path):
 
     return False
 
+
 def add_diskfile_entry(session, fileobj, filename, path, fullpath):
+    """
+    Add a DiskFile record for the given file.
+
+    Parameters
+    ----------
+    session : :class:`~sqlalchemy.org.session.Session`
+        Database session to operate on
+    fileobj : :class:`~gemini_obs_db.file.File`
+        File record to associate to
+    filename : str
+        Name of the file
+    path : str
+        Path of the file within the storage folder
+    fullpath : str
+        Full path of the file (no longer used)
+    """
     # Instantiating the DiskFile object with a bzip2 filename will trigger
     # creation of the unzipped cache file too.
     diskfile = DiskFile(fileobj, filename, path)
@@ -237,7 +286,18 @@ def add_diskfile_entry(session, fileobj, filename, path, fullpath):
 
     return True
 
+
 def remove_file(session, path):
+    """
+    Remove the given file from the database.
+
+    Parameters
+    ----------
+    session : :class:`~sqlalchemy.orm.session.Session`
+        Database session to apply changes to
+    path : str
+        String path to the file
+    """
     not_found = "Could not find any {} file in the database"
     directory = abspath(dirname(path))
     filename = basename(path)

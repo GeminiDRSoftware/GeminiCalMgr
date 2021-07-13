@@ -1,19 +1,16 @@
-gemini\_calmgr.utils package
-============================
+gemini\_calmgr.utils
+====================
 
-Submodules
-----------
-
-gemini\_calmgr.utils.dbtools module
------------------------------------
+gemini\_calmgr.utils.dbtools
+----------------------------
 
 .. automodule:: gemini_calmgr.utils.dbtools
    :members:
    :undoc-members:
    :show-inheritance:
 
-gemini\_calmgr.utils.hashes module
-----------------------------------
+gemini\_calmgr.utils.hashes
+---------------------------
 
 .. automodule:: gemini_calmgr.utils.hashes
    :members:
