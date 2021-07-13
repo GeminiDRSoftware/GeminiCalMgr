@@ -3,9 +3,9 @@ This module holds the CalibrationNIFS class
 """
 import datetime
 
-from gemini_obs_db.diskfile import DiskFile
-from gemini_obs_db.header import Header
-from gemini_obs_db.nifs import Nifs
+from gemini_obs_db.orm.diskfile import DiskFile
+from gemini_obs_db.orm.header import Header
+from gemini_obs_db.orm.nifs import Nifs
 from .calibration import Calibration
 
 class CalibrationNIFS(Calibration):

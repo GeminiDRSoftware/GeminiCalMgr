@@ -14,14 +14,14 @@ import astrodata
 import gemini_instruments
 
 from gemini_obs_db.f2 import F2
-from gemini_obs_db.ghost import Ghost
-from gemini_obs_db.gmos import Gmos
-from gemini_obs_db.gnirs import Gnirs
-from gemini_obs_db.gpi import Gpi
+from gemini_obs_db.orm.ghost import Ghost
+from gemini_obs_db.orm.gmos import Gmos
+from gemini_obs_db.orm.gnirs import Gnirs
+from gemini_obs_db.orm.gpi import Gpi
 from gemini_obs_db.gsaoi import Gsaoi
 from gemini_obs_db.michelle import Michelle
 from gemini_obs_db.nici import Nici
-from gemini_obs_db.nifs import Nifs
+from gemini_obs_db.orm.nifs import Nifs
 from gemini_obs_db.niri import Niri
 
 from ..fits_storage_config import storage_root
@@ -74,7 +74,7 @@ def check_present(session, filename):
     Returns
     -------
     bool
-        True if file has a :class:`~gemini_obs_db.diskfile.DiskFile` record
+        True if file has a :class:`~gemini_obs_db.orm.diskfile.DiskFile` record
         where `present` is `True`, else `False`
     """
 
@@ -104,12 +104,12 @@ def need_to_add_diskfile(session, fileobj):
     ----------
     session : :class:`~sqlalchemy.orm.session.Session`
         Database session to operate on.
-    fileobj : :class:`~gemini_obs_db.file.File`
+    fileobj : :class:`~gemini_obs_db.orm.file.File`
 
     Returns
     -------
     bool
-        True if we need to add a :class:`~gemini_obs_db.diskfile.DiskFile`
+        True if we need to add a :class:`~gemini_obs_db.orm.diskfile.DiskFile`
     """
     # See if a diskfile for this file already exists and is present
     query = session.query(DiskFile)\
@@ -185,7 +185,7 @@ def ingest_file(session, filename, path):
     Returns
     -------
     bool
-        True of succeeded or False for failing to add a new :class:`~gemini_obs_db.diskfile.DiskFile`.
+        True of succeeded or False for failing to add a new :class:`~gemini_obs_db.orm.diskfile.DiskFile`.
 
     """
 
@@ -222,7 +222,7 @@ def add_diskfile_entry(session, fileobj, filename, path, fullpath):
     ----------
     session : :class:`~sqlalchemy.org.session.Session`
         Database session to operate on
-    fileobj : :class:`~gemini_obs_db.file.File`
+    fileobj : :class:`~gemini_obs_db.orm.file.File`
         File record to associate to
     filename : str
         Name of the file

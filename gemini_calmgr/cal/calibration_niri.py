@@ -3,8 +3,8 @@ This module holds the CalibrationNIRI class
 """
 import datetime
 
-from gemini_obs_db.diskfile import DiskFile
-from gemini_obs_db.header import Header
+from gemini_obs_db.orm.diskfile import DiskFile
+from gemini_obs_db.orm.header import Header
 from gemini_obs_db.niri import Niri
 from .calibration import Calibration, not_processed
 

@@ -1,0 +1,4 @@
+.idea
+sphinx/build
+**/__pycache__
+

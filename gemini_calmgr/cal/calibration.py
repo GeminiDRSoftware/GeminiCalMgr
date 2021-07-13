@@ -4,9 +4,9 @@ This module holds the Calibration superclass
 import os
 
 import functools
-from gemini_obs_db.file     import File
-from gemini_obs_db.diskfile import DiskFile
-from gemini_obs_db.header import Header
+from gemini_obs_db.orm.file import File
+from gemini_obs_db.orm.diskfile import DiskFile
+from gemini_obs_db.orm.header import Header
 
 from sqlalchemy import func, desc, case
 from sqlalchemy.orm import join

@@ -3,9 +3,9 @@ This module holds the CalibrationGHOST class
 """
 import datetime
 
-from gemini_obs_db.diskfile import DiskFile
-from gemini_obs_db.header import Header
-from gemini_obs_db.ghost import Ghost
+from gemini_obs_db.orm.diskfile import DiskFile
+from gemini_obs_db.orm.header import Header
+from gemini_obs_db.orm.ghost import Ghost
 from .calibration import Calibration, not_processed, not_imaging, not_spectroscopy
 
 from sqlalchemy.orm import join

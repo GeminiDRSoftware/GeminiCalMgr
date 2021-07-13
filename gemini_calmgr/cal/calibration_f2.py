@@ -2,7 +2,7 @@
 This module holds the CalibrationF2 class
 """
 
-from gemini_obs_db.header import Header
+from gemini_obs_db.orm.header import Header
 from gemini_obs_db.f2 import F2
 from .calibration import Calibration, not_processed
 

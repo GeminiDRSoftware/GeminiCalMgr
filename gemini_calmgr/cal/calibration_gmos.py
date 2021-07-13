@@ -5,8 +5,8 @@ The CalibrationGMOS class
 
 import math
 
-from gemini_obs_db.header import Header
-from gemini_obs_db.gmos import Gmos
+from gemini_obs_db.orm.header import Header
+from gemini_obs_db.orm.gmos import Gmos
 
 from .calibration import Calibration
 from .calibration import not_imaging

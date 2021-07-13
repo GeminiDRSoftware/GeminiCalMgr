@@ -1,9 +1,9 @@
 """
 This module holds the CalibrationGNIRS class
 """
-from gemini_obs_db.diskfile import DiskFile
-from gemini_obs_db.header import Header
-from gemini_obs_db.gnirs import Gnirs
+from gemini_obs_db.orm.diskfile import DiskFile
+from gemini_obs_db.orm.header import Header
+from gemini_obs_db.orm.gnirs import Gnirs
 from .calibration import Calibration, not_processed
 
 from sqlalchemy import or_, desc
