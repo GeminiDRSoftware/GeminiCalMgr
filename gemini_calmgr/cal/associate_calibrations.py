@@ -29,11 +29,11 @@ def associate_cals(session, headers, caltype="all", recurse_level=0, full_query=
     Parameters
     ----------
 
-    session : :class:`sqlalchemy.orm.session.Session`
+    session : :class:`~sqlalchemy.orm.Session`
         The open session to use for querying data
 
 
-    header : list of :class:`fits_storage.orm.header.Header`
+    header : list of :class:`~gemini_obs_db.orm.header.Header`
         A list of headers to get the appropriate calibration objects for
 
     caltype : str, defaults to "all"
