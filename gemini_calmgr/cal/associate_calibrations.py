@@ -4,7 +4,7 @@ to generate a summary table of calibration data associated with the
 results of a search
 """
 from . import get_cal_object
-from ..gemini_metadata_utils import cal_types
+from gemini_obs_db.utils.gemini_metadata_utils import cal_types
 from gemini_obs_db.orm.file import File
 from gemini_obs_db.orm.diskfile import DiskFile
 from gemini_obs_db.orm.header import Header
