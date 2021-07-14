@@ -13,16 +13,16 @@ from sqlalchemy.orm.exc import NoResultFound
 import astrodata
 import gemini_instruments
 
-from gemini_obs_db.f2 import F2
+from gemini_obs_db.orm.f2 import F2
 from gemini_obs_db.orm.ghost import Ghost
 from gemini_obs_db.orm.gmos import Gmos
 from gemini_obs_db.orm.gnirs import Gnirs
 from gemini_obs_db.orm.gpi import Gpi
-from gemini_obs_db.gsaoi import Gsaoi
-from gemini_obs_db.michelle import Michelle
-from gemini_obs_db.nici import Nici
+from gemini_obs_db.orm.gsaoi import Gsaoi
+from gemini_obs_db.orm.michelle import Michelle
+from gemini_obs_db.orm.nici import Nici
 from gemini_obs_db.orm.nifs import Nifs
-from gemini_obs_db.niri import Niri
+from gemini_obs_db.orm.niri import Niri
 
 from ..fits_storage_config import storage_root
 

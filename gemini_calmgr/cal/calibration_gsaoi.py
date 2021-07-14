@@ -5,7 +5,7 @@ import datetime
 
 from gemini_obs_db.orm.diskfile import DiskFile
 from gemini_obs_db.orm.header import Header
-from gemini_obs_db.gsaoi import Gsaoi
+from gemini_obs_db.orm.gsaoi import Gsaoi
 from .calibration import Calibration, not_processed
 
 class CalibrationGSAOI(Calibration):

@@ -5,7 +5,7 @@ import datetime
 
 from gemini_obs_db.orm.diskfile import DiskFile
 from gemini_obs_db.orm.header import Header
-from gemini_obs_db.michelle import Michelle
+from gemini_obs_db.orm.michelle import Michelle
 from .calibration import Calibration
 
 class CalibrationMICHELLE(Calibration):

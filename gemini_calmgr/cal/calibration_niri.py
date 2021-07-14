@@ -5,7 +5,7 @@ import datetime
 
 from gemini_obs_db.orm.diskfile import DiskFile
 from gemini_obs_db.orm.header import Header
-from gemini_obs_db.niri import Niri
+from gemini_obs_db.orm.niri import Niri
 from .calibration import Calibration, not_processed
 
 from sqlalchemy import or_

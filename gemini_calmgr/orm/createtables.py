@@ -9,15 +9,15 @@ from gemini_obs_db.orm.file import File
 from gemini_obs_db.orm.diskfile import DiskFile
 from gemini_obs_db.orm.header import Header
 from gemini_obs_db.orm.gmos import Gmos
-from gemini_obs_db.niri import Niri
+from gemini_obs_db.orm.niri import Niri
 from gemini_obs_db.orm.gnirs import Gnirs
 from gemini_obs_db.orm.nifs import Nifs
-from gemini_obs_db.f2 import F2
+from gemini_obs_db.orm.f2 import F2
 from gemini_obs_db.orm.ghost import Ghost
 from gemini_obs_db.orm.gpi import Gpi
-from gemini_obs_db.gsaoi import Gsaoi
-from gemini_obs_db.nici import Nici
-from gemini_obs_db.michelle import Michelle
+from gemini_obs_db.orm.gsaoi import Gsaoi
+from gemini_obs_db.orm.nici import Nici
+from gemini_obs_db.orm.michelle import Michelle
 from gemini_obs_db.orm.calcache import CalCache
 
 def create_tables(session):

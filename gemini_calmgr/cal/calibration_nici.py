@@ -5,7 +5,7 @@ import datetime
 
 from gemini_obs_db.orm.diskfile import DiskFile
 from gemini_obs_db.orm.header import Header
-from gemini_obs_db.nici import Nici
+from gemini_obs_db.orm.nici import Nici
 from .calibration import Calibration, not_processed
 
 class CalibrationNICI(Calibration):
