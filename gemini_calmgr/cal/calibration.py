@@ -7,12 +7,14 @@ import functools
 from gemini_obs_db.orm.file import File
 from gemini_obs_db.orm.diskfile import DiskFile
 from gemini_obs_db.orm.header import Header
+from gemini_obs_db.utils.gemini_metadata_utils import UT_DATETIME_SECS_EPOCH
 
 from sqlalchemy import func, desc, case
 from sqlalchemy.orm import join
 from datetime import timedelta
 
-from .. import gemini_metadata_utils as gmu
+# from .. import gemini_metadata_utils as gmu
+from gemini_obs_db.utils import gemini_metadata_utils as gmu
 # from fits_storage.utils.render_query import render_query
 
 DEFAULT_ORDER_BY_FIRST = 0
@@ -282,7 +284,9 @@ class CalQuery(object):
 
         if default_order is not DEFAULT_ORDER_BY_NONE:
             # Order by absolute time separation.
-            targ_ut_dt_secs = int((self.descr['ut_datetime'] - Header.UT_DATETIME_SECS_EPOCH).total_seconds())
+            targ_ut_dt_secs = int((self.descr['ut_datetime']
+                                   - UT_DATETIME_SECS_EPOCH)
+                                  .total_seconds())
             def_order = func.abs(Header.ut_datetime_secs - targ_ut_dt_secs)
             present_order = desc(DiskFile.present)
             procmode_order = desc(sort_logic)  # Header.procmode
