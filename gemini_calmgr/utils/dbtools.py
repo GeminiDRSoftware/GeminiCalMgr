@@ -13,6 +13,9 @@ from sqlalchemy.orm.exc import NoResultFound
 import astrodata
 import gemini_instruments
 
+from gemini_obs_db.orm.file import File
+from gemini_obs_db.orm.diskfile import DiskFile
+from gemini_obs_db.orm.header import Header
 from gemini_obs_db.orm.f2 import F2
 from gemini_obs_db.orm.ghost import Ghost
 from gemini_obs_db.orm.gmos import Gmos
