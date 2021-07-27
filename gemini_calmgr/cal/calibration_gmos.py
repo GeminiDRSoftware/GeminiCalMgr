@@ -676,7 +676,7 @@ class CalibrationGMOS(Calibration):
                 .all(howmany)
             )
 
-    def standard(self, processed=False, howmany=None):
+    def standard(self, processed=False, howmany=None, return_query=False):
         """
         Method to find the best standard frame for the target dataset.
 
@@ -726,18 +726,17 @@ class CalibrationGMOS(Calibration):
 
         # we get 1000 rows here to have a limit of some sort, but in practice
         # we get all the cals, then sort them below, then limit it per the request
-        results = (
-            self.get_query()
-                .standard(processed)
-                .add_filters(*filters)
+        query = \
+            self.get_query() \
+                .standard(processed) \
+                .add_filters(*filters) \
                 .match_descriptors(Header.instrument,
                                    Gmos.disperser,
                                    Gmos.detector_x_bin,
                                    Gmos.detector_y_bin,
-                                   Gmos.filter_name)
-                # Absolute time separation must be within 1 year
+                                   Gmos.filter_name) \
                 .max_interval(days=183)
-                .all(1000))
+        results = query.all(1000)
 
         ut_datetime = self.descriptors['ut_datetime']
         wavelength = float(self.descriptors['central_wavelength'])
@@ -756,10 +755,10 @@ class CalibrationGMOS(Calibration):
 
         # do the actual sort and return our requested max results
         retval.sort(key=score)
-        if len(retval) > howmany:
-            return retval[0:howmany]
+        if return_query:
+            return retval[0:howmany], query
         else:
-            return retval
+            return retval[0:howmany]
 
 
     # We don't handle processed ones (yet)
