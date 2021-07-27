@@ -231,7 +231,7 @@ class CalibrationGMOS(Calibration):
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 
-    def dark(self, processed=False, howmany=None):
+    def dark(self, processed=False, howmany=None, return_query=False):
         """
         Method to find best GMOS Dark frame for the target dataset.
 
@@ -278,22 +278,24 @@ class CalibrationGMOS(Calibration):
         # of *seconds* different - going to choose darks within 50 secs for now...
         # That's why we're using a tolerance to match the exposure time
 
-        return (
-            self.get_query()
-                .dark(processed)
-                .add_filters(*filters)
+        query = \
+            self.get_query() \
+                .dark(processed) \
+                .add_filters(*filters) \
                 .match_descriptors(Header.instrument,
                                    Gmos.detector_x_bin,
                                    Gmos.detector_y_bin,
                                    Gmos.read_speed_setting,
                                    Gmos.gain_setting,
-                                   Gmos.nodandshuffle)
-                .tolerance(exposure_time = 50.0)
-                .if_(self.descriptors['nodandshuffle'], 'match_descriptors', Gmos.nod_count, Gmos.nod_pixels)
-                # Absolute time separation must be within 1 year
+                                   Gmos.nodandshuffle) \
+                .tolerance(exposure_time = 50.0) \
+                .if_(self.descriptors['nodandshuffle'], 'match_descriptors', Gmos.nod_count, Gmos.nod_pixels) \
                 .max_interval(days=365)
-                .all(howmany)
-            )
+
+        if return_query:
+            return (query.all(howmany)), query
+        else:
+            return (query.all(howmany))
 
     def bias(self, processed=False, howmany=None, return_query=False):
         """
