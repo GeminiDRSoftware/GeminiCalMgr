@@ -72,7 +72,7 @@ class CalibrationNIRI(Calibration):
                 self.applicable.append('telluric_standard')
                 self.applicable.append('processed_flat')
 
-    def dark(self, processed=False, howmany=None):
+    def dark(self, processed=False, howmany=None, return_query=False):
         """
         Method to find the darks
 
@@ -95,22 +95,23 @@ class CalibrationNIRI(Calibration):
         if howmany is None:
             howmany = 1 if processed else 10
 
-        return (
-            self.get_query()
-                .dark(processed)
-                .add_filters(Niri.data_section == self._parse_section(self.descriptors['data_section']))
+        # Exposure time must match to within 0.01 (nb floating point match). Coadds must also match.
+        # nb exposure_time is really exposure_time * coadds, but if we're matching both, that doesn't matter
+        query = \
+            self.get_query() \
+                .dark(processed) \
+                .add_filters(Niri.data_section == self._parse_section(self.descriptors['data_section'])) \
                 .match_descriptors(Niri.read_mode,
                                    Niri.well_depth_setting,
-                                   Header.coadds)
-                # Exposure time must match to within 0.01 (nb floating point match). Coadds must also match.
-                # nb exposure_time is really exposure_time * coadds, but if we're matching both, that doesn't matter
-                .tolerance(exposure_time = 0.01)
-                # Absolute time separation must be within 6 months
+                                   Header.coadds) \
+                .tolerance(exposure_time = 0.01) \
                 .max_interval(days=180)
-                .all(howmany)
-            )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
-    def flat(self, processed=False, howmany=None):
+    def flat(self, processed=False, howmany=None, return_query=False):
         """
         Method to find the flats
 
@@ -135,26 +136,28 @@ class CalibrationNIRI(Calibration):
         if howmany is None:
             howmany = 1 if processed else 10
 
-        return (
-            self.get_query()
-                .flat(processed)
-                # GCAL lamp should be on - these flats will then require lamp-off flats to calibrate them
-                .add_filters(or_(Header.gcal_lamp == 'IRhigh', Header.gcal_lamp == 'IRlow', Header.gcal_lamp == 'QH'))
-                .add_filters(Niri.data_section == self._parse_section(self.descriptors['data_section']))
-                # Must totally match: data_section, well_depth_setting, filter_name, camera, focal_plane_mask, disperser
-                # Update from AS 20130320 - read mode should not be required to match, but well depth should.
+        # GCAL lamp should be on - these flats will then require lamp-off flats to calibrate them
+        # Must totally match: data_section, well_depth_setting, filter_name, camera, focal_plane_mask, disperser
+        # Update from AS 20130320 - read mode should not be required to match, but well depth should.
+        query = \
+            self.get_query() \
+                .flat(processed) \
+                .add_filters(or_(Header.gcal_lamp == 'IRhigh', Header.gcal_lamp == 'IRlow', Header.gcal_lamp == 'QH')) \
+                .add_filters(Niri.data_section == self._parse_section(self.descriptors['data_section'])) \
                 .match_descriptors(Niri.well_depth_setting,
                                    Niri.filter_name,
                                    Niri.camera,
                                    Niri.focal_plane_mask,
-                                   Niri.disperser)
-                .tolerance(central_wavelength = 0.001, condition=self.descriptors['spectroscopy'])
-                # Absolute time separation must be within 6 months
-                .max_interval(days=180)
-                .all(howmany)
-            )
+                                   Niri.disperser) \
+                .tolerance(central_wavelength = 0.001, condition=self.descriptors['spectroscopy']) \
+                .max_interval(days=180) \
 
-    def arc(self, processed=False, howmany=None):
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
+
+    def arc(self, processed=False, howmany=None, return_query=False):
         """
          Method to find the arcs
 
@@ -179,19 +182,20 @@ class CalibrationNIRI(Calibration):
         # Default number to associate
         howmany = howmany if howmany else 1
 
-        return (
-            self.get_query()
-                .arc(processed)
-                .add_filters(Niri.data_section == self._parse_section(self.descriptors['data_section']))
+        query = \
+            self.get_query() \
+                .arc(processed) \
+                .add_filters(Niri.data_section == self._parse_section(self.descriptors['data_section'])) \
                 .match_descriptors(Niri.filter_name,
                                    Niri.camera,
                                    Niri.focal_plane_mask,
-                                   Niri.disperser)
-                .tolerance(central_wavelength = 0.001)
-                # Absolute time separation must be within 6 months
+                                   Niri.disperser) \
+                .tolerance(central_wavelength = 0.001) \
                 .max_interval(days=180)
-                .all(howmany)
-            )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
     @not_processed
     def lampoff_flat(self, processed=False, howmany=None):
