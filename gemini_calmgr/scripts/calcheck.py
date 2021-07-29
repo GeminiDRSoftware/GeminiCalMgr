@@ -19,7 +19,7 @@ from gemini_obs_db.orm.diskfile import DiskFile
 from gemini_obs_db.orm.gmos import Gmos
 from gemini_obs_db.orm.niri import Niri
 
-from gemini_calmgr.utils.debugging import get_status
+from gemini_calmgr.utils.debugging import get_status, get_calibration_type
 
 
 def show_line(table_name, key, cal_value, value, expr):
@@ -87,7 +87,9 @@ def why_not_matching(filename, processed, cal_type, calibration):
         logging.error(f"Unable to open {filename} with DRAGONS")
         exit(1)
     try:
-        astrodata.open(calibration)
+        calad = astrodata.open(calibration)
+        if cal_type == "auto":
+            processed, cal_type = get_calibration_type(calad)
     except:
         logging.error(f"Unable to open {calibration} with DRAGONS")
         exit(2)
@@ -121,22 +123,26 @@ def why_not_matching(filename, processed, cal_type, calibration):
         args["return_query"] = True
         if processed:
             args["processed"] = True
-        cals, query_result = getattr(cal_obj, method)(**args)
 
-        for cal in cals:
-            if cal.diskfile.filename == basename(calibration):
-                logging.info("Calibration matched")
-                exit(0)
+        if not hasattr(cal_obj, method):
+            print(f"Instrument {calad.instrument()} has no matching rule for {cal_type}")
+        else:
+            cals, query_result = getattr(cal_obj, method)(**args)
 
-        header = mgr.session.query(Header).first()
-        diskfile = mgr.session.query(DiskFile).first()
-        instr = mgr.session.query(Gmos).first()
-        print('Relevant fields from calibration:\n')
-        print('Table     | Key                | Cal Value                      '
-              '| Value                          | Expr')
-        print('----------+--------------------+--------------------------------'
-              '+--------------------------------+-------------------')
-        debug_parser(query_result, cal_obj, header, diskfile, instr)
+            for cal in cals:
+                if cal.diskfile.filename == basename(calibration):
+                    logging.info("Calibration matched")
+                    exit(0)
+
+            header = mgr.session.query(Header).first()
+            diskfile = mgr.session.query(DiskFile).first()
+            instr = mgr.session.query(Gmos).first()
+            print('Relevant fields from calibration:\n')
+            print('Table     | Key                | Cal Value                      '
+                  '| Value                          | Expr')
+            print('----------+--------------------+--------------------------------'
+                  '+--------------------------------+-------------------')
+            debug_parser(query_result, cal_obj, header, diskfile, instr)
 
     if reasons:
         logging.info(reasons)

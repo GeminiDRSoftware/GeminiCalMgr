@@ -85,16 +85,28 @@ def get_status(val, calval, expr):
 
 
 def get_calibration_type(obj):
-    if obj.observation_type == 'FLAT':
-        return 'flat'
-    if obj.observation_type == 'ARC':
-        return 'arc'
-    if obj.observation_type == 'BIAS':
-        return 'bias'
-    if obj.observation_type == 'DARK':
-        return 'dark'
-    if obj.observation_type == 'STANDARD':
-        return 'standard'
-    if 'SLITILLUM' in obj.types:
-        return 'slitillum'
+    if isinstance(obj, Header):
+        observation_type = obj.observation_type
+        types = obj.types
+    else:
+        observation_type = obj.observation_type()
+        types = obj.tags
+
+    def add_processed(retval, types):
+        if 'PROCESSED' in types:
+            return True, retval
+        return False, retval
+
+    if observation_type == 'FLAT':
+        return add_processed('flat', types)
+    if observation_type == 'ARC':
+        return add_processed('arc', types)
+    if observation_type == 'BIAS':
+        return add_processed('bias', types)
+    if observation_type == 'DARK':
+        return add_processed('dark', types)
+    if observation_type == 'STANDARD':
+        return add_processed('standard', types)
+    if 'SLITILLUM' in types:
+        return add_processed('slitillum', types)
     return None
