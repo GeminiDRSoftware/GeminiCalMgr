@@ -21,4 +21,5 @@ setup(
                 'gemini_calmgr.utils'],
     package_dir = {'gemini_calmgr': 'gemini_calmgr'},
 #    install_requires = ['sqlalchemy >= 0.9.9', 'pyfits']
+    scripts = ['gemini_calmgr/scripts/calcheck']
 )
