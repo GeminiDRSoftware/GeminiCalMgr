@@ -26,6 +26,7 @@ from gemini_obs_db.orm.michelle import Michelle
 from gemini_obs_db.orm.nici import Nici
 from gemini_obs_db.orm.nifs import Nifs
 from gemini_obs_db.orm.niri import Niri
+from gemini_obs_db.utils.hashes import md5sum
 
 from ..fits_storage_config import storage_root
 
@@ -99,7 +100,7 @@ def check_present(session, filename):
         pass
 
 
-def need_to_add_diskfile(session, fileobj):
+def need_to_add_diskfile(session, fileobj, fullpath=None):
     """
     Check if we need to add a diskfile record for the given :class:`~fitsstoragedb.orm.file.File` record.
 
@@ -126,7 +127,12 @@ def need_to_add_diskfile(session, fileobj):
         diskfile = query.one()
         # Ensure there's only one and get an instance of it
 
-        def need_to_add_diskfile_p(md5):
+        def need_to_add_diskfile_p():
+            if fullpath is not None:
+                md5 = md5sum(fullpath)
+            else:
+                md5 = diskfile.get_file_md5()
+
             # If md5 remains the same, we're good (unless we're forcing it)
             if diskfile.file_md5 == md5:
                 # No change
@@ -142,9 +148,10 @@ def need_to_add_diskfile(session, fileobj):
 
         # Has the file changed since we last ingested it?
         # By default check lastmod time first. There is a subtlety wrt timezones.
-        if (diskfile.lastmod.replace(tzinfo=None) != diskfile.get_lastmod()):
+        if (diskfile.lastmod.replace(tzinfo=None) != diskfile.get_lastmod() or
+                (fullpath is not None and diskfile.fullpath() != fullpath)):
             # The flags suggest file modification
-            result = need_to_add_diskfile_p(diskfile.get_file_md5())
+            result = need_to_add_diskfile_p()
 
     except NoResultFound:
         # No not present, insert into diskfile table
@@ -211,8 +218,12 @@ def ingest_file(session, filename, path):
 
     # At this point, 'fileobj' should by a valid DB object.
 
-    if need_to_add_diskfile(session, fileobj):
+    print("Checking need_to_add_diskfile")
+    if need_to_add_diskfile(session, fileobj, fullpath=fullpath):
+        print("Returned True, adding")
         return add_diskfile_entry(session, fileobj, filename, path, fullpath)
+    else:
+        print("Returned False, not adding")
 
     return False
 
