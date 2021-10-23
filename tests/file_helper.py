@@ -145,6 +145,7 @@ class MockAstroData(object):
             if xb and yb:
                 self.detector_x_bin = int(xb)
                 self.detector_y_bin = int(yb)
+        self.gain_setting = 'low'
 
     def telescope(self):
         return self._telescope
