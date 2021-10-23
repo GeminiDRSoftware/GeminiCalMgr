@@ -40,13 +40,13 @@ def test_arc(monkeypatch, session):
                       telescope="Gemini-North",
                       ut_datetime=datetime.strptime('2018-11-13 16:59:10', '%Y-%m-%d %H:%M:%S'),
                       observation_type='ARC', azimuth=74.99, elevation=89.99, cass_rotator_pa=176.91,
-                      exposure_time=11.0)
+                      exposure_time=11.0, disperser="R400")
     dummy_ingest_file(data_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2019B-ENG-51",
                       observation_id="GN-2019B-ENG-51-23", data_label="GN-2019B-ENG-51-23-001",
                       telescope="Gemini-North",
                       ut_datetime=datetime.strptime('2019-10-02 11:10:09', '%Y-%m-%d %H:%M:%S'),
                       observation_type='OBJECT', ra=349.99, dec=-5.16, azimuth=235.74, elevation=49.36,
-                      cass_rotator_pa=180.38, raw_cc=50, raw_wv=20, raw_bg=20, exposure_time=120.0)
+                      cass_rotator_pa=180.38, raw_cc=50, raw_wv=20, raw_bg=20, exposure_time=120.0, disperser="R400")
     # iq.ingest_file(raw_arc_file, "", False, True)
     # iq.ingest_file(data_file, "", False, True)
 
