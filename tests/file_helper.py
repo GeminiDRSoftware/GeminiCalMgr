@@ -102,7 +102,7 @@ class MockAstroData(object):
                  object='', ra=None, dec=None, azimuth=None, elevation=None, cass_rotator_pa=None,
                  raw_iq=None, raw_cc=None, raw_wv=None, raw_bg=None, requested_iq=100,
                  requested_cc=100, requested_wv=100, requested_bg=100, exposure_time=None,
-                 disperser=None, wavelength_band=None
+                 disperser=None, wavelength_band=None, detector_binning=None
                  ):
         self.tags = tags
         self.instrument = instrument
@@ -137,6 +137,7 @@ class MockAstroData(object):
         self.exposure_time = exposure_time
         self.disperser = disperser
         self.wavelength_band = wavelength_band
+        self.detector_binning = detector_binning
 
     def telescope(self):
         return self._telescope
@@ -146,7 +147,8 @@ def dummy_ingest_file(filename, tags, instrument=None, program_id=None, observat
                       telescope=None, ut_datetime=None, observation_type=None, object='', ra=None, dec=None,
                       azimuth=None, elevation=None, cass_rotator_pa=None, raw_iq=None,
                       raw_cc=None, raw_wv=None, raw_bg=None, requested_iq=100, requested_cc=100, requested_wv=100,
-                      requested_bg=100, exposure_time=None, disperser=None, wavelength_band=None):
+                      requested_bg=100, exposure_time=None, disperser=None, wavelength_band=None,
+                      detector_binning=None):
     instrument_table = {
         # Instrument: (Name for debugging, Class)
         'F2': ("F2", F2),
@@ -173,7 +175,7 @@ def dummy_ingest_file(filename, tags, instrument=None, program_id=None, observat
                                        raw_cc=raw_cc, raw_wv=raw_wv, raw_bg=raw_bg,
                                        requested_cc=requested_cc, requested_iq=requested_iq, requested_wv=requested_wv,
                                        requested_bg=requested_bg, exposure_time=exposure_time, disperser=disperser,
-                                       wavelength_band=wavelength_band)
+                                       wavelength_band=wavelength_band, detector_binning=detector_binning)
     # astrodata.open(diskfile.fullpath())
     dfr = DiskFileReport()  # diskfile, True, True)
     header = Header(diskfile)
