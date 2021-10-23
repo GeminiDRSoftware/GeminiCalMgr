@@ -149,6 +149,7 @@ class MockAstroData(object):
         self.read_speed_setting = 'slow'
         self.well_depth_setting = None
         self.detector_roi_setting = "Central Spectrum"
+        self.coadds = None
 
     def telescope(self):
         return self._telescope
