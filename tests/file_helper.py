@@ -96,7 +96,10 @@ class MockAstroData(object):
         self.program_id = program_id
         self.observation_id = observation_id
         self.data_label = data_label
-        self.telescope = telescope
+        self._telescope = telescope
+
+    def telescope(self):
+        return self._telescope
 
 
 def dummy_ingest_file(filename, tags, instrument=None, program_id=None, observation_id=None, data_label=None,

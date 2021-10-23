@@ -71,15 +71,21 @@ def test_dark(monkeypatch, session):
     ensure_file(raw_dark_file, '/tmp')
     ensure_file(data_file, '/tmp')
 
-    iq = IngestQueueUtil(session, EmptyLogger())
-
-    iq.ingest_file(raw_dark_file, "", False, True)
-    iq.ingest_file(data_file, "", False, True)
+    # iq = IngestQueueUtil(session, EmptyLogger())
+    #
+    # iq.ingest_file(raw_dark_file, "", False, True)
+    # iq.ingest_file(data_file, "", False, True)
+    dummy_ingest_file(raw_dark_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2018A-FT-103",
+                      observation_id="GN-2018A-FT-103-16", data_label="GN-2018A-FT-103-16-029",
+                      telescope="Gemini-North")
+    dummy_ingest_file(data_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2018A-FT-103",
+                      observation_id="GN-2018A-FT-103-13", data_label="GN-2018A-FT-103-13-003",
+                      telescope="Gemini-North")
 
     df = session.query(DiskFile).filter(DiskFile.filename == data_file)\
         .filter(DiskFile.canonical == True).one()
     header = session.query(Header).filter(Header.diskfile_id == df.id).one()
-    cache_associations(session, header.id)
+    # cache_associations(session, header.id)
 
     df = session.query(DiskFile).filter(DiskFile.filename == raw_dark_file)\
         .filter(DiskFile.canonical == True).one()
@@ -102,15 +108,21 @@ def test_bias(monkeypatch, session):
     ensure_file(raw_bias_file, '/tmp')
     ensure_file(data_file, '/tmp')
 
-    iq = IngestQueueUtil(session, EmptyLogger())
-
-    iq.ingest_file(raw_bias_file, "", False, True)
-    iq.ingest_file(data_file, "", False, True)
+    # iq = IngestQueueUtil(session, EmptyLogger())
+    #
+    # iq.ingest_file(raw_bias_file, "", False, True)
+    # iq.ingest_file(data_file, "", False, True)
+    dummy_ingest_file(raw_bias_file, ['GMOS'], instrument="GMOS-N", program_id="GN-CAL20180122",
+                      observation_id="GN-CAL20180122-2", data_label="GN-CAL20180122-2-001",
+                      telescope="Gemini-North")
+    dummy_ingest_file(data_file, ['GMOS'], instrument="GMOS-N", program_id="GN-CAL20180117",
+                      observation_id="GN-CAL20180117-25", data_label="GN-CAL20180117-25-002",
+                      telescope="Gemini-North")
 
     df = session.query(DiskFile).filter(DiskFile.filename == data_file)\
         .filter(DiskFile.canonical == True).one()
     header = session.query(Header).filter(Header.diskfile_id == df.id).one()
-    cache_associations(session, header.id)
+    # cache_associations(session, header.id)
 
     df = session.query(DiskFile).filter(DiskFile.filename == raw_bias_file)\
         .filter(DiskFile.canonical == True).one()
@@ -133,15 +145,21 @@ def test_spectral_flat(monkeypatch, session):
     ensure_file(raw_flat_file, '/tmp')
     ensure_file(data_file, '/tmp')
 
-    iq = IngestQueueUtil(session, EmptyLogger())
+    # iq = IngestQueueUtil(session, EmptyLogger())
 
-    iq.ingest_file(raw_flat_file, "", False, True)
-    iq.ingest_file(data_file, "", False, True)
+    # iq.ingest_file(raw_flat_file, "", False, True)
+    # iq.ingest_file(data_file, "", False, True)
+    dummy_ingest_file(raw_flat_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2017B-Q-62",
+                      observation_id="GN-2017B-Q-62-286", data_label="GN-2017B-Q-62-286-029",
+                      telescope="Gemini-North")
+    dummy_ingest_file(data_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2017B-Q-62",
+                      observation_id="GN-2017B-Q-62-286", data_label="GN-2017B-Q-62-286-003",
+                      telescope="Gemini-North")
 
     df = session.query(DiskFile).filter(DiskFile.filename == data_file)\
         .filter(DiskFile.canonical == True).one()
     header = session.query(Header).filter(Header.diskfile_id == df.id).one()
-    cache_associations(session, header.id)
+    # cache_associations(session, header.id)
 
     df = session.query(DiskFile).filter(DiskFile.filename == raw_flat_file)\
         .filter(DiskFile.canonical == True).one()
@@ -163,15 +181,21 @@ def test_imaging_flat(monkeypatch, session):
     ensure_file(raw_flat_file, '/tmp')
     ensure_file(data_file, '/tmp')
 
-    iq = IngestQueueUtil(session, EmptyLogger())
-
-    iq.ingest_file(raw_flat_file, "", False, True)
-    iq.ingest_file(data_file, "", False, True)
+    # iq = IngestQueueUtil(session, EmptyLogger())
+    #
+    # iq.ingest_file(raw_flat_file, "", False, True)
+    # iq.ingest_file(data_file, "", False, True)
+    dummy_ingest_file(raw_flat_file, ['GMOS'], instrument="GMOS-N", program_id="GN-CAL20180330",
+                      observation_id="GN-CAL20180330-19", data_label="GN-CAL20180330-19-006",
+                      telescope="Gemini-North")
+    dummy_ingest_file(data_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2018A-Q-118",
+                      observation_id="GN-2018A-Q-118-210", data_label="GN-2018A-Q-118-210-005",
+                      telescope="Gemini-North")
 
     df = session.query(DiskFile).filter(DiskFile.filename == data_file)\
         .filter(DiskFile.canonical == True).one()
     header = session.query(Header).filter(Header.diskfile_id == df.id).one()
-    cache_associations(session, header.id)
+    # cache_associations(session, header.id)
 
     df = session.query(DiskFile).filter(DiskFile.filename == raw_flat_file)\
         .filter(DiskFile.canonical == True).one()
@@ -194,15 +218,21 @@ def test_processed_fringe(monkeypatch, session):
     ensure_file(raw_flat_file, '/tmp')
     ensure_file(data_file, '/tmp')
 
-    iq = IngestQueueUtil(session, EmptyLogger())
-
-    iq.ingest_file(raw_flat_file, "", False, True)
-    iq.ingest_file(data_file, "", False, True)
+    # iq = IngestQueueUtil(session, EmptyLogger())
+    #
+    # iq.ingest_file(raw_flat_file, "", False, True)
+    # iq.ingest_file(data_file, "", False, True)
+    dummy_ingest_file(raw_flat_file, ['GMOS'], instrument="GMOS-N", program_id="GN-CAL20110313",
+                      observation_id="GN-CAL20110313-900", data_label="GN-CAL20110313-900-188",
+                      telescope="Gemini-North")
+    dummy_ingest_file(data_file, ['GMOS'], instrument="GMOS-N", program_id="GN-CAL20110311",
+                      observation_id="GN-CAL20110311-14", data_label="GN-CAL20110311-14-016",
+                      telescope="Gemini-North")
 
     df = session.query(DiskFile).filter(DiskFile.filename == data_file)\
         .filter(DiskFile.canonical == True).one()
     header = session.query(Header).filter(Header.diskfile_id == df.id).one()
-    cache_associations(session, header.id)
+    # cache_associations(session, header.id)
 
     df = session.query(DiskFile).filter(DiskFile.filename == raw_flat_file)\
         .filter(DiskFile.canonical == True).one()
