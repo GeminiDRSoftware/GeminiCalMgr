@@ -154,6 +154,7 @@ class MockAstroData(object):
             'AOFOLD': ''
         }
         self.wavefront_sensor = "OIWFS"
+        self.qa_state = "Undefined"
 
     def telescope(self):
         return self._telescope
