@@ -153,6 +153,7 @@ class MockAstroData(object):
         self.phu = {
             'AOFOLD': ''
         }
+        self.wavefront_sensor = "OIWFS"
 
     def telescope(self):
         return self._telescope
