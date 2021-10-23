@@ -98,7 +98,8 @@ _default_observation_class = {
 
 class MockAstroData(object):
     def __init__(self, tags, instrument=None, program_id=None, observation_id=None, data_label=None,
-                 telescope=None, ut_datetime=None, observation_type=None, observation_class=None):
+                 telescope=None, ut_datetime=None, observation_type=None, observation_class=None,
+                 object=''):
         self.tags = tags
         self.instrument = instrument
         self.program_id = program_id
@@ -115,6 +116,7 @@ class MockAstroData(object):
                 self.observation_class = _default_observation_class[observation_type]
             else:
                 self.observation_class = None
+        self.object = object
 
     def telescope(self):
         return self._telescope
