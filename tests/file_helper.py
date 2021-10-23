@@ -138,6 +138,13 @@ class MockAstroData(object):
         self.disperser = disperser
         self.wavelength_band = wavelength_band
         self.detector_binning = detector_binning
+        self.detector_x_bin = None
+        self.detector_y_bin = None
+        if detector_binning is not None:
+            xb, yb = detector_binning.split('x')
+            if xb and yb:
+                self.detector_x_bin = int(xb)
+                self.detector_y_bin = int(yb)
 
     def telescope(self):
         return self._telescope
