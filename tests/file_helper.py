@@ -98,6 +98,7 @@ class MockAstroData(object):
         self.data_label = data_label
         self._telescope = telescope
         self.ut_datetime = ut_datetime
+        self.local_time = ut_datetime  # fake it out
 
     def telescope(self):
         return self._telescope
