@@ -89,9 +89,10 @@ class DiskFileReport(object):
 
 
 class MockAstroData(object):
-    def __init__(self, tags, instrument=None):
+    def __init__(self, tags, instrument=None, program_id=None):
         self.tags = tags
         self.instrument = instrument
+        self.program_id = program_id
 
 
 def dummy_ingest_file(filename, tags, instrument=None, program_id=None):
