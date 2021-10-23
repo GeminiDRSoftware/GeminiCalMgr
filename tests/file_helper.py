@@ -155,6 +155,7 @@ class MockAstroData(object):
         }
         self.wavefront_sensor = "OIWFS"
         self.qa_state = "Undefined"
+        self.gcal_lamp = None
 
     def telescope(self):
         return self._telescope
