@@ -88,9 +88,17 @@ class DiskFileReport(object):
     pass
 
 
+_default_observation_class = {
+    'OBJECT': 'science',
+    'ARC': 'dayCal',
+    'BIAS': 'dayCal',
+    'FLAT': 'dayCal'
+}
+
+
 class MockAstroData(object):
     def __init__(self, tags, instrument=None, program_id=None, observation_id=None, data_label=None,
-                 telescope=None, ut_datetime=None, observation_type=None):
+                 telescope=None, ut_datetime=None, observation_type=None, observation_class=None):
         self.tags = tags
         self.instrument = instrument
         self.program_id = program_id
@@ -99,7 +107,14 @@ class MockAstroData(object):
         self._telescope = telescope
         self.ut_datetime = ut_datetime
         self.local_time = ut_datetime  # fake it out
-        self.observation_type=observation_type
+        self.observation_type = observation_type
+        if observation_class is not None:
+            self.observation_class = observation_class
+        else:
+            if observation_type in _default_observation_class:
+                self.observation_class = _default_observation_class[observation_type]
+            else:
+                self.observation_class = None
 
     def telescope(self):
         return self._telescope
