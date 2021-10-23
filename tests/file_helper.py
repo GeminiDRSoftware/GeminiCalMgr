@@ -94,7 +94,7 @@ class MockAstroData(object):
         self.instrument = instrument
 
 
-def dummy_ingest_file(filename, tags):
+def dummy_ingest_file(filename, tags, instrument=None, program_id=None):
     instrument_table = {
         # Instrument: (Name for debugging, Class)
         'F2': ("F2", F2),
@@ -112,7 +112,8 @@ def dummy_ingest_file(filename, tags):
     fileobj = File(filename)
     path = ""
     diskfile = DiskFile(fileobj, filename, path)
-    diskfile.ad_object = MockAstroData(tags, instrument="GMOS-N")  # astrodata.open(diskfile.fullpath())
+    diskfile.ad_object = MockAstroData(tags, instrument=instrument, program_id=program_id)
+    # astrodata.open(diskfile.fullpath())
     dfr = DiskFileReport()  # diskfile, True, True)
     header = Header(diskfile)
     name, instClass = instrument_table[header.instrument]

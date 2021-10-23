@@ -34,8 +34,8 @@ def test_arc(monkeypatch, session):
     ensure_file(data_file, '/tmp')
 
     # iq = IngestQueueUtil(session, EmptyLogger())
-    dummy_ingest_file(raw_arc_file, ['GMOS'])
-    dummy_ingest_file(data_file, ['GMOS'])
+    dummy_ingest_file(raw_arc_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2018B-FT-207")
+    dummy_ingest_file(data_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2019B-ENG-51")
     # iq.ingest_file(raw_arc_file, "", False, True)
     # iq.ingest_file(data_file, "", False, True)
 
