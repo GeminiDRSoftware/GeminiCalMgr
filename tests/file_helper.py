@@ -89,13 +89,14 @@ class DiskFileReport(object):
 
 
 class MockAstroData(object):
-    def __init__(self, tags, instrument=None, program_id=None):
+    def __init__(self, tags, instrument=None, program_id=None, observation_id=None):
         self.tags = tags
         self.instrument = instrument
         self.program_id = program_id
+        self.observation_id = observation_id
 
 
-def dummy_ingest_file(filename, tags, instrument=None, program_id=None):
+def dummy_ingest_file(filename, tags, instrument=None, program_id=None, observation_id=None):
     instrument_table = {
         # Instrument: (Name for debugging, Class)
         'F2': ("F2", F2),
@@ -113,7 +114,8 @@ def dummy_ingest_file(filename, tags, instrument=None, program_id=None):
     fileobj = File(filename)
     path = ""
     diskfile = DiskFile(fileobj, filename, path)
-    diskfile.ad_object = MockAstroData(tags, instrument=instrument, program_id=program_id)
+    diskfile.ad_object = MockAstroData(tags, instrument=instrument, program_id=program_id,
+                                       observation_id=observation_id)
     # astrodata.open(diskfile.fullpath())
     dfr = DiskFileReport()  # diskfile, True, True)
     header = Header(diskfile)
