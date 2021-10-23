@@ -146,6 +146,7 @@ class MockAstroData(object):
                 self.detector_x_bin = int(xb)
                 self.detector_y_bin = int(yb)
         self.gain_setting = 'low'
+        self.read_speed_setting = 'slow'
 
     def telescope(self):
         return self._telescope
