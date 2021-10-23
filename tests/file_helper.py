@@ -150,6 +150,9 @@ class MockAstroData(object):
         self.well_depth_setting = None
         self.detector_roi_setting = "Central Spectrum"
         self.coadds = None
+        self.phu = {
+            'AOFOLD': ''
+        }
 
     def telescope(self):
         return self._telescope
