@@ -100,7 +100,9 @@ class MockAstroData(object):
     def __init__(self, tags, instrument=None, program_id=None, observation_id=None, data_label=None,
                  telescope=None, ut_datetime=None, observation_type=None, observation_class=None,
                  object='', ra=None, dec=None, azimuth=None, elevation=None, cass_rotator_pa=None,
-                 raw_iq=None, raw_cc=None, raw_wv=None, raw_bg=None):
+                 raw_iq=None, raw_cc=None, raw_wv=None, raw_bg=None, requested_iq=100,
+                 requested_cc=100, requested_wv=100, requested_bg=100
+                 ):
         self.tags = tags
         self.instrument = instrument
         self.program_id = program_id
@@ -127,6 +129,10 @@ class MockAstroData(object):
         self.raw_cc = raw_cc
         self.raw_wv = raw_wv
         self.raw_bg = raw_bg
+        self.requested_iq = requested_iq
+        self.requested_cc = requested_cc
+        self.requested_wv = requested_wv
+        self.requested_bg = requested_bg
 
     def telescope(self):
         return self._telescope
@@ -135,7 +141,8 @@ class MockAstroData(object):
 def dummy_ingest_file(filename, tags, instrument=None, program_id=None, observation_id=None, data_label=None,
                       telescope=None, ut_datetime=None, observation_type=None, object='', ra=None, dec=None,
                       azimuth=None, elevation=None, cass_rotator_pa=None, raw_iq=None,
-                      raw_cc=None, raw_wv=None, raw_bg=None):
+                      raw_cc=None, raw_wv=None, raw_bg=None, requested_iq=100, requested_cc=100, requested_wv=100,
+                      requested_bg=100):
     instrument_table = {
         # Instrument: (Name for debugging, Class)
         'F2': ("F2", F2),
@@ -159,7 +166,9 @@ def dummy_ingest_file(filename, tags, instrument=None, program_id=None, observat
                                        observation_type=observation_type, object=object,
                                        ra=ra, dec=dec, azimuth=azimuth, elevation=elevation,
                                        cass_rotator_pa=cass_rotator_pa, raw_iq=raw_iq,
-                                       raw_cc=raw_cc, raw_wv=raw_wv, raw_bg=raw_bg)
+                                       raw_cc=raw_cc, raw_wv=raw_wv, raw_bg=raw_bg,
+                                       requested_iq=requested_iq, requested_wv=requested_wv,
+                                       requested_bg=requested_bg)
     # astrodata.open(diskfile.fullpath())
     dfr = DiskFileReport()  # diskfile, True, True)
     header = Header(diskfile)
