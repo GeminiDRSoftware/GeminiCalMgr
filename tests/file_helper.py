@@ -99,7 +99,7 @@ _default_observation_class = {
 class MockAstroData(object):
     def __init__(self, tags, instrument=None, program_id=None, observation_id=None, data_label=None,
                  telescope=None, ut_datetime=None, observation_type=None, observation_class=None,
-                 object='', ra=None, dec=None, azimuth=None):
+                 object='', ra=None, dec=None, azimuth=None, elevation=None):
         self.tags = tags
         self.instrument = instrument
         self.program_id = program_id
@@ -120,6 +120,7 @@ class MockAstroData(object):
         self.ra = ra
         self.dec = dec
         self.azimuth = azimuth
+        self.elevation = elevation
 
     def telescope(self):
         return self._telescope
@@ -127,7 +128,7 @@ class MockAstroData(object):
 
 def dummy_ingest_file(filename, tags, instrument=None, program_id=None, observation_id=None, data_label=None,
                       telescope=None, ut_datetime=None, observation_type=None, object='', ra=None, dec=None,
-                      azimuth=None):
+                      azimuth=None, elevation=None):
     instrument_table = {
         # Instrument: (Name for debugging, Class)
         'F2': ("F2", F2),
@@ -149,7 +150,7 @@ def dummy_ingest_file(filename, tags, instrument=None, program_id=None, observat
                                        observation_id=observation_id, data_label=data_label,
                                        telescope=telescope, ut_datetime=ut_datetime,
                                        observation_type=observation_type, object=object,
-                                       ra=ra, dec=dec, azimuth=azimuth)
+                                       ra=ra, dec=dec, azimuth=azimuth, elevation=elevation)
     # astrodata.open(diskfile.fullpath())
     dfr = DiskFileReport()  # diskfile, True, True)
     header = Header(diskfile)
