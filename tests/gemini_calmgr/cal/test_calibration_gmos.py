@@ -45,7 +45,7 @@ def test_arc(monkeypatch, session):
                       telescope="Gemini-North",
                       ut_datetime=datetime.strptime('2019-10-02 11:10:09', '%Y-%m-%d %H:%M:%S'),
                       observation_type='OBJECT', ra=349.99, dec=-5.16, azimuth=235.74, elevation=49.36,
-                      cass_rotator_pa=180.38)
+                      cass_rotator_pa=180.38, raw_cc=50, raw_wv=20, raw_bg=20)
     # iq.ingest_file(raw_arc_file, "", False, True)
     # iq.ingest_file(data_file, "", False, True)
 
