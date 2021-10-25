@@ -588,7 +588,7 @@ class Calibration(object):
                 self.descriptors[descr] = getattr(inst, descr, None)
         elif self.descriptors is not None:
             # The data_section comes over as a native python array, needs to be a string
-            if self.descriptors['data_section']:
+            if 'data_section' in self.descriptors and self.descriptors['data_section'] is not None:
                 self.descriptors['data_section'] = str(self.descriptors['data_section'])
 
         # Set the list of applicable calibrations
