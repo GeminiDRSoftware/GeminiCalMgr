@@ -99,9 +99,10 @@ def test_dark(monkeypatch, session):
         .filter(DiskFile.canonical == True).one()
     cal_header = session.query(Header).filter(Header.diskfile_id == df.id).one()
 
-    cc = session.query(CalCache).filter(CalCache.obs_hid == header.id) \
-        .filter(CalCache.cal_hid == cal_header.id).one_or_none()
-    assert(cc is not None)
+    descriptors = None
+    types = list()
+    c = CalibrationGMOS(session, header, descriptors, types)
+    dark = c.dark()
 
 
 @pytest.mark.usefixtures("rollback")
@@ -136,9 +137,10 @@ def test_bias(monkeypatch, session):
         .filter(DiskFile.canonical == True).one()
     cal_header = session.query(Header).filter(Header.diskfile_id == df.id).one()
 
-    cc = session.query(CalCache).filter(CalCache.obs_hid == header.id) \
-        .filter(CalCache.cal_hid == cal_header.id).one_or_none()
-    assert(cc is not None)
+    descriptors = None
+    types = list()
+    c = CalibrationGMOS(session, header, descriptors, types)
+    bias = c.bias()
 
 
 @pytest.mark.usefixtures("rollback")
@@ -173,9 +175,11 @@ def test_spectral_flat(monkeypatch, session):
         .filter(DiskFile.canonical == True).one()
     cal_header = session.query(Header).filter(Header.diskfile_id == df.id).one()
 
-    cc = session.query(CalCache).filter(CalCache.obs_hid == header.id) \
-        .filter(CalCache.cal_hid == cal_header.id).one_or_none()
-    assert(cc is not None)
+    # TODO make sure we are setup for spectral data
+    descriptors = None
+    types = list()
+    c = CalibrationGMOS(session, header, descriptors, types)
+    flat = c.flat()
 
 
 @pytest.mark.usefixtures("rollback")
@@ -209,9 +213,11 @@ def test_imaging_flat(monkeypatch, session):
         .filter(DiskFile.canonical == True).one()
     cal_header = session.query(Header).filter(Header.diskfile_id == df.id).one()
 
-    cc = session.query(CalCache).filter(CalCache.obs_hid == header.id) \
-        .filter(CalCache.cal_hid == cal_header.id).one_or_none()
-    assert(cc is not None)
+    # TODO make sure we are setup for imaging data
+    descriptors = None
+    types = list()
+    c = CalibrationGMOS(session, header, descriptors, types)
+    flat = c.flat()
 
 
 @pytest.mark.usefixtures("rollback")
@@ -246,6 +252,8 @@ def test_processed_fringe(monkeypatch, session):
         .filter(DiskFile.canonical == True).one()
     cal_header = session.query(Header).filter(Header.diskfile_id == df.id).one()
 
-    cc = session.query(CalCache).filter(CalCache.obs_hid == header.id) \
-        .filter(CalCache.cal_hid == cal_header.id).one_or_none()
-    assert(cc is not None)
+    descriptors = None
+    types = list()
+    c = CalibrationGMOS(session, header, descriptors, types)
+    fringe = c.fringe(processed=True)
+
