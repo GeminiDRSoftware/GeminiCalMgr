@@ -195,7 +195,7 @@ def dummy_ingest_file(filename, tags, instrument=None, program_id=None, observat
                                        requested_bg=requested_bg, exposure_time=exposure_time, disperser=disperser,
                                        wavelength_band=wavelength_band, detector_binning=detector_binning)
     print(f"Instrument in dummy_ingest_file: {instrument}")
-    print(f"Astrodata version: {diskfile.ad_object.isntrument}")
+    print(f"Astrodata version: {diskfile.ad_object.instrument}")
     # astrodata.open(diskfile.fullpath())
     dfr = DiskFileReport()  # diskfile, True, True)
     header = Header(diskfile)
