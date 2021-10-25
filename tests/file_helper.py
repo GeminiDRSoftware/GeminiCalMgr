@@ -104,7 +104,7 @@ class MockAstroData(object):
                  requested_cc=100, requested_wv=100, requested_bg=100, exposure_time=None,
                  disperser=None, wavelength_band=None, detector_binning=None
                  ):
-        self.tags = tags
+        self.tags = tags if tags is not None else list()
         self.instrument = instrument
         self.program_id = program_id
         self.observation_id = observation_id
