@@ -146,7 +146,7 @@ class MockAstroData(object):
                 self.detector_x_bin = int(xb)
                 self.detector_y_bin = int(yb)
         self.gain_setting = 'low'
-        self.read_speed_setting = 'slow'
+        self._read_speed_setting = 'slow'
         self.well_depth_setting = None
         self.detector_roi_setting = "Central Spectrum"
         self.coadds = None
@@ -157,6 +157,9 @@ class MockAstroData(object):
         self.qa_state = "Undefined"
         self.gcal_lamp = None
         self._filter_name = filter_name
+
+    def read_speed_setting(self):
+        return self._read_speed_setting
 
     def filter_name(self, stripID=False, pretty=False):
         return self._filter_name
