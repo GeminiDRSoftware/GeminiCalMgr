@@ -135,7 +135,7 @@ class MockAstroData(object):
         self.requested_wv = requested_wv
         self.requested_bg = requested_bg
         self.exposure_time = exposure_time
-        self.disperser = disperser
+        self.disperser = lambda: disperser
         self.wavelength_band = wavelength_band
         self.detector_binning = detector_binning
         self.detector_x_bin = None
@@ -159,6 +159,25 @@ class MockAstroData(object):
 
     def telescope(self):
         return self._telescope
+
+    def pupil_mask(self, stripID=False, pretty=False):
+        """
+        Returns the name of the pupil mask used for the observation
+
+        Returns
+        -------
+        str
+            the pupil mask
+        """
+        try:
+            filter3 = self.phu['FILTER3']
+        except KeyError:
+            return None
+        if filter3.startswith('pup'):
+             return gmu.removeComponentID(filter3) if pretty or stripID \
+                else filter3
+        else:
+            return 'MIRROR'
 
 
 def dummy_ingest_file(filename, tags, instrument=None, program_id=None, observation_id=None, data_label=None,
