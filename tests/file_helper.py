@@ -159,49 +159,7 @@ class MockAstroData(object):
         self._filter_name = filter_name
 
     def filter_name(self, stripID=False, pretty=False):
-        """
-        Returns the name of the filter(s) used.  The component ID can be
-        removed with either 'stripID' or 'pretty'.  If a combination of filters
-        is used, the filter names will be join into a unique string with '&' as
-        separator.  If 'pretty' is True, filter positions such as 'Open',
-        'Dark', 'blank', and others are removed leaving only the relevant
-        filters in the string.
-
-        Parameters
-        ----------
-        stripID : bool
-            If True, removes the component ID and returns only the name of
-            the filter.
-        pretty : bool
-            Same as for stripID.  Pretty here does not do anything more.
-
-        Returns
-        -------
-        str
-            The name of the filter combination with or without the component ID.
-        """
-        f1 = self._may_remove_component('FILTER1', stripID, pretty)
-        f2 = self._may_remove_component('FILTER2', stripID, pretty)
-        if f1 is None or f2 is None:
-            return None
-
-        if pretty:
-            filter_comps = []
-            for fn in (f1, f2):
-                # Not interested in clear or neutral density filters
-                if not ("open" in fn.lower() or "Clear" in fn or
-                            fn.lower().startswith('nd')):
-                    filter_comps.append(fn)
-            if not filter_comps:
-                filter_comps.append("open")
-            cals = (("Block", "blank"), ("Dark", "blank"), ("DK", "dark"))
-            for cal, fn in cals:
-                if cal in f1 or cal in f2:
-                    filter_comps.append(fn)
-        else:
-            filter_comps = [f1, f2]
-
-        return "&".join(filter_comps[:2])
+        return self._filter_name
 
     def telescope(self):
         return self._telescope
