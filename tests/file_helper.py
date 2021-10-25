@@ -102,7 +102,8 @@ class MockAstroData(object):
                  object='', ra=None, dec=None, azimuth=None, elevation=None, cass_rotator_pa=None,
                  raw_iq=None, raw_cc=None, raw_wv=None, raw_bg=None, requested_iq=100,
                  requested_cc=100, requested_wv=100, requested_bg=100, exposure_time=None,
-                 disperser=None, wavelength_band=None, detector_binning=None, filter_name=None
+                 disperser=None, wavelength_band=None, detector_binning=None, filter_name=None,
+                 focal_plane_mask=None
                  ):
         self.tags = tags if tags is not None else list()
         self.instrument = instrument
@@ -157,12 +158,16 @@ class MockAstroData(object):
         self.qa_state = "Undefined"
         self.gcal_lamp = None
         self._filter_name = filter_name
+        self._focal_plane_mask = focal_plane_mask
 
     def read_speed_setting(self):
         return self._read_speed_setting
 
     def filter_name(self, stripID=False, pretty=False):
         return self._filter_name
+
+    def focal_plane_mask(self):
+        return self._focal_plane_mask
 
     def telescope(self):
         return self._telescope
