@@ -60,7 +60,7 @@ def test_arc(monkeypatch, session):
         .filter(DiskFile.canonical == True).one()
     cal_header = session.query(Header).filter(Header.diskfile_id == df.id).one()
 
-    descriptors = dict()
+    descriptors = None
     types = list()
     c = CalibrationGMOS(session, header, descriptors, types)
     arc = c.arc()
