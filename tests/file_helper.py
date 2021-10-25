@@ -112,7 +112,7 @@ class MockAstroData(object):
         self.data_label = data_label
         self._telescope = telescope
         self.ut_datetime = ut_datetime
-        self.local_time = ut_datetime  # fake it out
+        self.local_time = ut_datetime.time() if ut_datetime else None  # fake it out
         self.observation_type = observation_type
         if observation_class is not None:
             self.observation_class = observation_class
