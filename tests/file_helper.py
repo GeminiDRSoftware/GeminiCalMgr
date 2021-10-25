@@ -102,7 +102,7 @@ class MockAstroData(object):
                  object='', ra=None, dec=None, azimuth=None, elevation=None, cass_rotator_pa=None,
                  raw_iq=None, raw_cc=None, raw_wv=None, raw_bg=None, requested_iq=100,
                  requested_cc=100, requested_wv=100, requested_bg=100, exposure_time=None,
-                 disperser=None, wavelength_band=None, detector_binning=None
+                 disperser=None, wavelength_band=None, detector_binning=None, filter_name=None
                  ):
         self.tags = tags if tags is not None else list()
         self.instrument = instrument
@@ -156,6 +156,10 @@ class MockAstroData(object):
         self.wavefront_sensor = "OIWFS"
         self.qa_state = "Undefined"
         self.gcal_lamp = None
+        self._filter_name = filter_name
+
+    def filter_name(self):
+        return self._filter_name
 
     def telescope(self):
         return self._telescope
