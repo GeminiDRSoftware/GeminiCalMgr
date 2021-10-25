@@ -35,13 +35,13 @@ def test_arc(monkeypatch, session):
     ensure_file(data_file, '/tmp')
 
     # iq = IngestQueueUtil(session, EmptyLogger())
-    dummy_ingest_file(raw_arc_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2018B-FT-207",
+    dummy_ingest_file(session, raw_arc_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2018B-FT-207",
                       observation_id="GN-2018B-FT-207-29", data_label="GN-2018B-FT-207-29-001",
                       telescope="Gemini-North",
                       ut_datetime=datetime.strptime('2018-11-13 16:59:10', '%Y-%m-%d %H:%M:%S'),
                       observation_type='ARC', azimuth=74.99, elevation=89.99, cass_rotator_pa=176.91,
                       exposure_time=11.0, disperser="R400", wavelength_band="r", detector_binning="2x2")
-    dummy_ingest_file(data_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2019B-ENG-51",
+    dummy_ingest_file(session, data_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2019B-ENG-51",
                       observation_id="GN-2019B-ENG-51-23", data_label="GN-2019B-ENG-51-23-001",
                       telescope="Gemini-North",
                       ut_datetime=datetime.strptime('2019-10-02 11:10:09', '%Y-%m-%d %H:%M:%S'),
@@ -83,10 +83,10 @@ def test_dark(monkeypatch, session):
     #
     # iq.ingest_file(raw_dark_file, "", False, True)
     # iq.ingest_file(data_file, "", False, True)
-    dummy_ingest_file(raw_dark_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2018A-FT-103",
+    dummy_ingest_file(session, raw_dark_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2018A-FT-103",
                       observation_id="GN-2018A-FT-103-16", data_label="GN-2018A-FT-103-16-029",
                       telescope="Gemini-North")
-    dummy_ingest_file(data_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2018A-FT-103",
+    dummy_ingest_file(session, data_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2018A-FT-103",
                       observation_id="GN-2018A-FT-103-13", data_label="GN-2018A-FT-103-13-003",
                       telescope="Gemini-North")
 
@@ -120,10 +120,10 @@ def test_bias(monkeypatch, session):
     #
     # iq.ingest_file(raw_bias_file, "", False, True)
     # iq.ingest_file(data_file, "", False, True)
-    dummy_ingest_file(raw_bias_file, ['GMOS'], instrument="GMOS-N", program_id="GN-CAL20180122",
+    dummy_ingest_file(session, raw_bias_file, ['GMOS'], instrument="GMOS-N", program_id="GN-CAL20180122",
                       observation_id="GN-CAL20180122-2", data_label="GN-CAL20180122-2-001",
                       telescope="Gemini-North")
-    dummy_ingest_file(data_file, ['GMOS'], instrument="GMOS-N", program_id="GN-CAL20180117",
+    dummy_ingest_file(session, data_file, ['GMOS'], instrument="GMOS-N", program_id="GN-CAL20180117",
                       observation_id="GN-CAL20180117-25", data_label="GN-CAL20180117-25-002",
                       telescope="Gemini-North")
 
@@ -157,10 +157,10 @@ def test_spectral_flat(monkeypatch, session):
 
     # iq.ingest_file(raw_flat_file, "", False, True)
     # iq.ingest_file(data_file, "", False, True)
-    dummy_ingest_file(raw_flat_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2017B-Q-62",
+    dummy_ingest_file(session, raw_flat_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2017B-Q-62",
                       observation_id="GN-2017B-Q-62-286", data_label="GN-2017B-Q-62-286-029",
                       telescope="Gemini-North")
-    dummy_ingest_file(data_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2017B-Q-62",
+    dummy_ingest_file(session, data_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2017B-Q-62",
                       observation_id="GN-2017B-Q-62-286", data_label="GN-2017B-Q-62-286-003",
                       telescope="Gemini-North")
 
@@ -193,10 +193,10 @@ def test_imaging_flat(monkeypatch, session):
     #
     # iq.ingest_file(raw_flat_file, "", False, True)
     # iq.ingest_file(data_file, "", False, True)
-    dummy_ingest_file(raw_flat_file, ['GMOS'], instrument="GMOS-N", program_id="GN-CAL20180330",
+    dummy_ingest_file(session, raw_flat_file, ['GMOS'], instrument="GMOS-N", program_id="GN-CAL20180330",
                       observation_id="GN-CAL20180330-19", data_label="GN-CAL20180330-19-006",
                       telescope="Gemini-North")
-    dummy_ingest_file(data_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2018A-Q-118",
+    dummy_ingest_file(session, data_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2018A-Q-118",
                       observation_id="GN-2018A-Q-118-210", data_label="GN-2018A-Q-118-210-005",
                       telescope="Gemini-North")
 
@@ -230,10 +230,10 @@ def test_processed_fringe(monkeypatch, session):
     #
     # iq.ingest_file(raw_flat_file, "", False, True)
     # iq.ingest_file(data_file, "", False, True)
-    dummy_ingest_file(raw_flat_file, ['GMOS'], instrument="GMOS-N", program_id="GN-CAL20110313",
+    dummy_ingest_file(session, raw_flat_file, ['GMOS'], instrument="GMOS-N", program_id="GN-CAL20110313",
                       observation_id="GN-CAL20110313-900", data_label="GN-CAL20110313-900-188",
                       telescope="Gemini-North")
-    dummy_ingest_file(data_file, ['GMOS'], instrument="GMOS-N", program_id="GN-CAL20110311",
+    dummy_ingest_file(session, data_file, ['GMOS'], instrument="GMOS-N", program_id="GN-CAL20110311",
                       observation_id="GN-CAL20110311-14", data_label="GN-CAL20110311-14-016",
                       telescope="Gemini-North")
 

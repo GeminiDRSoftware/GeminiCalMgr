@@ -192,7 +192,7 @@ class MockAstroData(object):
             return 'MIRROR'
 
 
-def dummy_ingest_file(filename, tags, instrument=None, program_id=None, observation_id=None, data_label=None,
+def dummy_ingest_file(session, filename, tags, instrument=None, program_id=None, observation_id=None, data_label=None,
                       telescope=None, ut_datetime=None, observation_type=None, object='', ra=None, dec=None,
                       azimuth=None, elevation=None, cass_rotator_pa=None, raw_iq=None,
                       raw_cc=None, raw_wv=None, raw_bg=None, requested_iq=100, requested_cc=100, requested_wv=100,
@@ -227,9 +227,14 @@ def dummy_ingest_file(filename, tags, instrument=None, program_id=None, observat
                                        wavelength_band=wavelength_band, detector_binning=detector_binning)
     print(f"Instrument in dummy_ingest_file: {instrument}")
     print(f"Astrodata version: {diskfile.ad_object.instrument}")
+    session.add(diskfile)
     # astrodata.open(diskfile.fullpath())
     dfr = DiskFileReport()  # diskfile, True, True)
     header = Header(diskfile)
+    session.add(header)
     print(f"Parsed header, it has instrument {header.instrument}")
     name, instClass = instrument_table[header.instrument]
     entry = instClass(header, diskfile.ad_object)
+
+    session.flush()
+
