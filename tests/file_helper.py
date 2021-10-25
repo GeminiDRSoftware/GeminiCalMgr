@@ -213,6 +213,8 @@ def dummy_ingest_file(session, filename, tags, instrument=None, program_id=None,
     }
 
     fileobj = File(filename)
+    session.add(fileobj)
+    session.flush()
     path = ""
     diskfile = DiskFile(fileobj, filename, path)
     diskfile.ad_object = MockAstroData(tags, instrument=instrument, program_id=program_id,
@@ -228,6 +230,7 @@ def dummy_ingest_file(session, filename, tags, instrument=None, program_id=None,
     print(f"Instrument in dummy_ingest_file: {instrument}")
     print(f"Astrodata version: {diskfile.ad_object.instrument}")
     session.add(diskfile)
+    session.flush()
     # astrodata.open(diskfile.fullpath())
     dfr = DiskFileReport()  # diskfile, True, True)
     header = Header(diskfile)
