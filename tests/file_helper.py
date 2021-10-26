@@ -7,6 +7,7 @@ from datetime import datetime
 # import fits_storage
 import gemini_obs_db
 # from fits_storage import fits_storage_config
+from gemini_instruments import gmu
 from gemini_obs_db import db_config
 
 # have to override this here for now, before diskfile import
@@ -103,9 +104,9 @@ class MockAstroData(object):
                  raw_iq=None, raw_cc=None, raw_wv=None, raw_bg=None, requested_iq=100,
                  requested_cc=100, requested_wv=100, requested_bg=100, exposure_time=None,
                  disperser=None, wavelength_band=None, detector_binning=None, filter_name=None,
-                 focal_plane_mask=None
+                 focal_plane_mask=None, central_wavelength=None
                  ):
-        self.tags = tags if tags is not None else list()
+        self.tags = set(tags) if tags is not None else list()
         self.instrument = instrument
         self.program_id = program_id
         self.observation_id = observation_id
@@ -159,12 +160,16 @@ class MockAstroData(object):
         self.gcal_lamp = None
         self._filter_name = filter_name
         self._focal_plane_mask = focal_plane_mask
+        self._central_wavelength = central_wavelength
 
     def read_speed_setting(self):
         return self._read_speed_setting
 
     def filter_name(self, stripID=False, pretty=False):
         return self._filter_name
+
+    def central_wavelength(self, asMicrometers=False, asNanometers=False, asAngstroms=False):
+        return self._central_wavelength
 
     def focal_plane_mask(self):
         return self._focal_plane_mask
@@ -193,11 +198,11 @@ class MockAstroData(object):
 
 
 def dummy_ingest_file(session, filename, tags, instrument=None, program_id=None, observation_id=None, data_label=None,
-                      telescope=None, ut_datetime=None, observation_type=None, object='', ra=None, dec=None,
-                      azimuth=None, elevation=None, cass_rotator_pa=None, raw_iq=None,
+                      telescope=None, ut_datetime=None, observation_class=None, observation_type=None, object='',
+                      ra=None, dec=None, azimuth=None, elevation=None, cass_rotator_pa=None, raw_iq=None,
                       raw_cc=None, raw_wv=None, raw_bg=None, requested_iq=100, requested_cc=100, requested_wv=100,
                       requested_bg=100, exposure_time=None, disperser=None, wavelength_band=None,
-                      detector_binning=None):
+                      detector_binning=None, central_wavelength=None, focal_plane_mask=None):
     instrument_table = {
         # Instrument: (Name for debugging, Class)
         'F2': ("F2", F2),
@@ -220,13 +225,15 @@ def dummy_ingest_file(session, filename, tags, instrument=None, program_id=None,
     diskfile.ad_object = MockAstroData(tags, instrument=instrument, program_id=program_id,
                                        observation_id=observation_id, data_label=data_label,
                                        telescope=telescope, ut_datetime=ut_datetime,
+                                       observation_class=observation_class,
                                        observation_type=observation_type, object=object,
                                        ra=ra, dec=dec, azimuth=azimuth, elevation=elevation,
                                        cass_rotator_pa=cass_rotator_pa, raw_iq=raw_iq,
                                        raw_cc=raw_cc, raw_wv=raw_wv, raw_bg=raw_bg,
                                        requested_cc=requested_cc, requested_iq=requested_iq, requested_wv=requested_wv,
                                        requested_bg=requested_bg, exposure_time=exposure_time, disperser=disperser,
-                                       wavelength_band=wavelength_band, detector_binning=detector_binning)
+                                       wavelength_band=wavelength_band, detector_binning=detector_binning,
+                                       central_wavelength=central_wavelength, focal_plane_mask=focal_plane_mask)
     print(f"Instrument in dummy_ingest_file: {instrument}")
     print(f"Astrodata version: {diskfile.ad_object.instrument}")
     session.add(diskfile)
@@ -235,9 +242,11 @@ def dummy_ingest_file(session, filename, tags, instrument=None, program_id=None,
     dfr = DiskFileReport()  # diskfile, True, True)
     header = Header(diskfile)
     session.add(header)
+    session.flush()
+
     print(f"Parsed header, it has instrument {header.instrument}")
     name, instClass = instrument_table[header.instrument]
     entry = instClass(header, diskfile.ad_object)
-
+    session.add(entry)
     session.flush()
 

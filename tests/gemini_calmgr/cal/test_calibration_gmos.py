@@ -30,13 +30,13 @@ def test_arc(monkeypatch, session):
     ensure_file(data_file, '/tmp')
 
     # iq = IngestQueueUtil(session, EmptyLogger())
-    dummy_ingest_file(session, raw_arc_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2018B-FT-207",
+    dummy_ingest_file(session, raw_arc_file, ['GMOS', 'SPECT'], instrument="GMOS-N", program_id="GN-2018B-FT-207",
                       observation_id="GN-2018B-FT-207-29", data_label="GN-2018B-FT-207-29-001",
                       telescope="Gemini-North",
                       ut_datetime=datetime.strptime('2018-11-13 16:59:10', '%Y-%m-%d %H:%M:%S'),
                       observation_type='ARC', azimuth=74.99, elevation=89.99, cass_rotator_pa=176.91,
                       exposure_time=11.0, disperser="R400", wavelength_band="r", detector_binning="2x2")
-    dummy_ingest_file(session, data_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2019B-ENG-51",
+    dummy_ingest_file(session, data_file, ['GMOS', 'SPECT'], instrument="GMOS-N", program_id="GN-2019B-ENG-51",
                       observation_id="GN-2019B-ENG-51-23", data_label="GN-2019B-ENG-51-23-001",
                       telescope="Gemini-North",
                       ut_datetime=datetime.strptime('2019-10-02 11:10:09', '%Y-%m-%d %H:%M:%S'),
@@ -59,7 +59,9 @@ def test_arc(monkeypatch, session):
     types = list()
     c = CalibrationGMOS(session, header, descriptors, types)
     arc = c.arc()
-    pass
+    assert(arc is not None)
+    assert(len(arc) == 1)
+    assert(arc[0].data_label == 'GN-2018B-FT-207-29-001')
 
 
 @pytest.mark.usefixtures("rollback")
@@ -107,6 +109,9 @@ def test_dark(monkeypatch, session):
     types = list()
     c = CalibrationGMOS(session, header, descriptors, types)
     dark = c.dark()
+    assert(dark is not None)
+    assert(len(dark) == 1)
+    assert(dark[0].data_label == 'GN-2018A-FT-103-16-029')
 
 
 @pytest.mark.usefixtures("rollback")
@@ -153,6 +158,9 @@ def test_bias(monkeypatch, session):
     types = list()
     c = CalibrationGMOS(session, header, descriptors, types)
     bias = c.bias()
+    assert(bias is not None)
+    assert(len(bias) == 1)
+    assert(bias[0].data_label == 'GN-CAL20180122-2-001')
 
 
 @pytest.mark.usefixtures("rollback")
@@ -171,19 +179,22 @@ def test_spectral_flat(monkeypatch, session):
 
     # iq.ingest_file(raw_flat_file, "", False, True)
     # iq.ingest_file(data_file, "", False, True)
-    dummy_ingest_file(session, raw_flat_file, ['GMOS', 'SPECTROSCOPY'], instrument="GMOS-N", program_id="GN-2017B-Q-62",
+    dummy_ingest_file(session, raw_flat_file, ['GMOS', 'SPECT'], instrument="GMOS-N", program_id="GN-2017B-Q-62",
                       observation_id="GN-2017B-Q-62-286", data_label="GN-2017B-Q-62-286-029",
                       telescope="Gemini-North",
                       ut_datetime=datetime.strptime('2018-01-01 09:16:57', '%Y-%m-%d %H:%M:%S'),
                       observation_type='FLAT', azimuth=-111, elevation=34.89, cass_rotator_pa=90.96,
-                      exposure_time=3.25, disperser="32_mm&SXD", wavelength_band='H', detector_binning="1x1"
+                      exposure_time=3.25, disperser="32_mm&SXD", wavelength_band='H', detector_binning="1x1",
+                      central_wavelength=1.65, focal_plane_mask="1.00arcsecXD"
                       )
-    dummy_ingest_file(session, data_file, ['GMOS', 'SPECTROSCOPY'], instrument="GMOS-N", program_id="GN-2017B-Q-62",
+    # TODO had to modify elevation, crpa to get a match, original files would not be suitable on astrodata
+    dummy_ingest_file(session, data_file, ['GMOS', 'SPECT'], instrument="GMOS-N", program_id="GN-2017B-Q-62",
                       observation_id="GN-2017B-Q-62-286", data_label="GN-2017B-Q-62-286-003",
                       telescope="Gemini-North",
                       ut_datetime=datetime.strptime('2018-01-01 06:53:13', '%Y-%m-%d %H:%M:%S'),
-                      observation_type='OBJECT', azimuth=-149.72, elevation=61.45, cass_rotator_pa=115.96,
-                      exposure_time=300.0, disperser="32_mm&SXD", wavelength_band='H', detector_binning="1x1"
+                      observation_type='OBJECT', azimuth=-149.72, elevation=34.89, cass_rotator_pa=90.96,
+                      exposure_time=300.0, disperser="32_mm&SXD", wavelength_band='H', detector_binning="1x1",
+                      central_wavelength=1.65, focal_plane_mask="1.00arcsecXD"
                       )
 
     df = session.query(DiskFile).filter(DiskFile.filename == data_file)\
@@ -200,6 +211,9 @@ def test_spectral_flat(monkeypatch, session):
     types = list()
     c = CalibrationGMOS(session, header, descriptors, types)
     flat = c.flat()
+    assert(flat is not None)
+    assert(len(flat) == 1)
+    assert(flat[0].data_label == 'GN-2017B-Q-62-286-029')
 
 
 @pytest.mark.usefixtures("rollback")
@@ -221,7 +235,9 @@ def test_imaging_flat(monkeypatch, session):
                       observation_id="GN-CAL20180330-19", data_label="GN-CAL20180330-19-006",
                       telescope="Gemini-North",
                       ut_datetime=datetime.strptime('2018-03-30 15:46:48', '%Y-%m-%d %H:%M:%S'),
-                      observation_type='OBJECT', azimuth=-106.56, elevation=68.21, cass_rotator_pa=157.46,
+                      observation_class='dayCal',
+                      observation_type='OBJECT', object='Twilight', azimuth=-106.56, elevation=68.21,
+                      cass_rotator_pa=157.46,
                       exposure_time=64.0, disperser="MIRROR", wavelength_band='g', detector_binning="1x1"
                       )
     dummy_ingest_file(session, data_file, ['GMOS'], instrument="GMOS-N", program_id="GN-2018A-Q-118",
@@ -246,6 +262,9 @@ def test_imaging_flat(monkeypatch, session):
     types = list()
     c = CalibrationGMOS(session, header, descriptors, types)
     flat = c.flat()
+    assert(flat is not None)
+    assert(len(flat) == 1)
+    assert(flat[0].data_label == 'GN-CAL20180330-19-006')
 
 
 @pytest.mark.usefixtures("rollback")
@@ -264,7 +283,7 @@ def test_processed_fringe(monkeypatch, session):
     #
     # iq.ingest_file(raw_flat_file, "", False, True)
     # iq.ingest_file(data_file, "", False, True)
-    dummy_ingest_file(session, raw_flat_file, ['GMOS', 'PROCESSED_FRINGE'], instrument="GMOS-N", program_id="GN-CAL20110313",
+    dummy_ingest_file(session, raw_flat_file, ['GMOS', 'FRINGE', 'PROCESSED', 'PROCESSED_FRINGE'], instrument="GMOS-N", program_id="GN-CAL20110313",
                       observation_id="GN-CAL20110313-900", data_label="GN-CAL20110313-900-188",
                       telescope="Gemini-North",
                       ut_datetime=datetime.strptime('2011-03-13 12:28:35', '%Y-%m-%d %H:%M:%S'),
@@ -291,5 +310,8 @@ def test_processed_fringe(monkeypatch, session):
     descriptors = None
     types = list()
     c = CalibrationGMOS(session, header, descriptors, types)
-    fringe = c.fringe(processed=True)
-
+    # fringe = c.fringe(processed=True)
+    fringe = c.processed_fringe()
+    assert(fringe is not None)
+    assert(len(fringe) == 1)
+    assert(fringe[0].data_label == 'GN-CAL20110313-900-188')
