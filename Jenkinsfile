@@ -67,7 +67,7 @@ pipeline {
                                 sh  '''
                                     mkdir -p /tmp/archive_test_images
                                     mkdir -p /tmp/cached_archive_test_images
-                                    coverage run --source /opt/GeminiCalMgr/ --omit "/usr/lib/*,/usr/local/*,/opt/DRAGONS/*,/opt/FitsStorageDB/*,/opt/GeminiCalMgr/tests/*" -m pytest /opt/GeminiCalMgr/tests
+                                    coverage run --source /opt/GeminiCalMgr/ --include "/opt/GeminiCalMgr/gemini_calmgr/*" --omit "/usr/lib/*,/usr/local/*,/opt/DRAGONS/*,/opt/FitsStorageDB/*,/opt/GeminiCalMgr/tests/*" -m pytest /opt/GeminiCalMgr/tests
                                     coverage report -m --fail-under=44
                                     '''
                             }
