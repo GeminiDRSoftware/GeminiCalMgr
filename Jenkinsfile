@@ -68,7 +68,7 @@ pipeline {
                                     mkdir -p /tmp/archive_test_images
                                     mkdir -p /tmp/cached_archive_test_images
                                     coverage run --omit "/usr/lib/*,/usr/local/*,/opt/DRAGONS/*,/opt/FitsStorageDB/*,/opt/GeminiCalMgr/tests/*" -m pytest /opt/GeminiCalMgr/tests
-                                    coverage report -m --fail-under=1
+                                    coverage report -m --fail-under=44
                                     '''
                             }
                         } catch (exc) {
