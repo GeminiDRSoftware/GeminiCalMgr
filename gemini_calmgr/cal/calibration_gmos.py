@@ -253,7 +253,7 @@ class CalibrationGMOS(Calibration):
         -------
             list of :class:`fits_storage.orm.header.Header` records that match the criteria
         """
-
+        print("constructing dark query")
         if howmany is None:
             howmany = 1 if processed else 15
 
@@ -278,6 +278,7 @@ class CalibrationGMOS(Calibration):
         # of *seconds* different - going to choose darks within 50 secs for now...
         # That's why we're using a tolerance to match the exposure time
 
+        print(f"self.descriptors['nodandshuffle']: {self.descriptors['nodandshuffle']}")
         query = \
             self.get_query() \
                 .dark(processed) \
@@ -286,11 +287,13 @@ class CalibrationGMOS(Calibration):
                                    Gmos.detector_x_bin,
                                    Gmos.detector_y_bin,
                                    Gmos.read_speed_setting,
-                                   Gmos.gain_setting,
-                                   Gmos.nodandshuffle) \
+                                   Gmos.gain_setting) \
                 .tolerance(exposure_time = 50.0) \
-                .if_(self.descriptors['nodandshuffle'], 'match_descriptors', Gmos.nod_count, Gmos.nod_pixels) \
+                .match_descriptors(Gmos.nod_count, Gmos.nod_pixels) \
                 .max_interval(days=365)
+        # note, also matched Gmos.nodandshuffle in earlier match_descriptors
+        # old variant depended on nodandshuffle, which is not currently a descriptor and only available for calcache/table-to-table
+        # .if_(self.descriptors['nodandshuffle'], 'match_descriptors', Gmos.nod_count, Gmos.nod_pixels) \
 
         if return_query:
             return (query.all(howmany)), query

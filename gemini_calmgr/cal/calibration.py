@@ -21,6 +21,12 @@ DEFAULT_ORDER_BY_FIRST = 0
 DEFAULT_ORDER_BY_LAST  = 1
 DEFAULT_ORDER_BY_NONE  = 2
 
+
+_remappings = {
+    "shuffle_pixels": "nod_pixels"
+}
+
+
 # A common theme across calibrations is that some of them don't handle processed
 # data and will just return an empty list of calibs. This decorator is just some
 # syntactic sugar for that common pattern.
@@ -590,6 +596,15 @@ class Calibration(object):
             # The data_section comes over as a native python array, needs to be a string
             if 'data_section' in self.descriptors and self.descriptors['data_section'] is not None:
                 self.descriptors['data_section'] = str(self.descriptors['data_section'])
+
+        # Here, we patch in any needed aliases for descriptors that have changed their names.  This is
+        # needed when the DB field name no longer matches an updated descriptor name.  For now, this is
+        # for shuffle_pixels which is the new name for nod_pixels, but the databases all have nod_pixels
+        updater = {}
+        for k, v in self.descriptors.items():
+            if k in _remappings and _remappings[k] not in self.descriptors:
+                updater[_remappings[k]] = v
+        self.descriptors.update(updater)
 
         # Set the list of applicable calibrations
         self.set_applicable()
