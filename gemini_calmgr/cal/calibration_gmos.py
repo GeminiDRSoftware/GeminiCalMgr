@@ -987,7 +987,6 @@ class CalibrationGMOS(Calibration):
         """
         # Default number to associate
         howmany = howmany if howmany else 1
-        print("in new slitillum")
         filters = []
 
         lower_bound, upper_bound, tolerance = self._get_fuzzy_wavelength()
