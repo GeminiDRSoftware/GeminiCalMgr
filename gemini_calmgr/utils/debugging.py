@@ -47,14 +47,14 @@ def _check_not_equals(val, calval):
 
 
 def _check_greater_than(val, calval):
-    if calval != val:
+    if val > calval:
         return "pass"
     else:
         return "fail"
 
 
 def _check_less_than(val, calval):
-    if calval != val:
+    if val < calval:
         return "pass"
     else:
         return "fail"
