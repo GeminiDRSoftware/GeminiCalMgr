@@ -9,6 +9,8 @@ from gemini_obs_db.orm.diskfile import DiskFile
 from gemini_obs_db.orm.header import Header
 from gemini_obs_db.utils.gemini_metadata_utils import UT_DATETIME_SECS_EPOCH
 
+from ast import literal_eval
+
 from sqlalchemy import func, desc, case
 from sqlalchemy.orm import join
 from datetime import timedelta
@@ -564,7 +566,7 @@ class Calibration(object):
         # Populate the descriptors dictionary for header
         if self.descriptors is None and self.instrClass is not None:
             self.from_descriptors = True
-            self.types = eval(self.header.types)
+            self.types = literal_eval(self.header.types)
             self.descriptors = {
                 'header_id':            self.header.id,
                 'observation_id':       self.header.observation_id,
