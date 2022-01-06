@@ -7,7 +7,7 @@ Other
 calibrations
 ^^^^^^^^^^^^
 
-- using literal_eval for types parsing to be safe from malicious data
+- using literal_eval for types parsing to be safe from malicious data [#2]
 
 
 1.1.0
