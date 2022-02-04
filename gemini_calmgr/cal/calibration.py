@@ -533,6 +533,12 @@ class CalQuery(object):
         """
         return self.raw_or_processed_by_types('SLITILLUM', processed)
 
+    def bpm(self, processed=False):
+        """
+        Filter: shorthand for ``raw_or_processed('BPM', processed)``
+        """
+        return self.raw_or_processed_by_types('BPM', processed)
+
 
 class Calibration(object):
     """
@@ -718,5 +724,9 @@ class Calibration(object):
         return []
 
     def slitillum(self, processed=False, howmany=None):
+        # Not defined for this instrument
+        return []
+
+    def bpm(self, processed=False, howmany=None):
         # Not defined for this instrument
         return []
