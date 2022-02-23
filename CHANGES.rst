@@ -1,3 +1,15 @@
+1.1.3
+=====
+
+Other
+-----
+
+ghost_calmgr
+^^^^^^^^^^^^
+
+- Keying off reduction type PROCESSED_UNKNOWN as that is how the reduction is set in the Header table
+
+
 1.1.2
 =====
 
