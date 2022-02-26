@@ -3,6 +3,8 @@ This module holds the CalibrationNIFS class
 """
 import datetime
 
+from sqlalchemy import or_
+
 from gemini_obs_db.orm.diskfile import DiskFile
 from gemini_obs_db.orm.header import Header
 from gemini_obs_db.orm.nifs import Nifs
@@ -109,7 +111,7 @@ class CalibrationNIFS(Calibration):
             self.get_query()
                 .flat(processed)
                 # GCAL lamp must be IRhigh or QH
-                .add_filters(Header.gcal_lamp.in_(['IRhigh', 'QH']))
+                .add_filters(or_(Header.gcal_lamp == 'IRhigh', Header.gcal_lamp.like('QH%')))
                 # NIFS flats are always taken in short / high readmode. Don't match against readmode (inst sci Email 2013-03-13)
                 .match_descriptors(*CalibrationNIFS.common_descriptors())
                 # Absolute time separation must be within 10 days
