@@ -1,3 +1,12 @@
+1.1.4
+=====
+
+calibrations_*
+^^^^^^^^^^^^^^
+
+- support for QH* gcal lamps
+
+
 1.1.3
 =====
 
