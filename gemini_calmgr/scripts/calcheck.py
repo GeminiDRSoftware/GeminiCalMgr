@@ -61,6 +61,12 @@ def debug_binary_expression(clause, cal_obj, header, diskfile, instr):
             show_line(table.name, key, getattr(instr, key), val, expr)
 
 
+def debug_boolean_clause_list(clause, cal_obj, header, diskfile, instr):
+    for clause in clause.clauses:
+        for x in debug_dispatch(clause, cal_obj, header, diskfile, instr):
+            yield x
+
+
 def debug_dispatch(clause, cal_obj, header, diskfile, instr):
     if isinstance(clause, BooleanClauseList):
         debug_boolean_clause_list(clause, cal_obj, header, diskfile, instr)
@@ -103,6 +109,7 @@ def why_not_matching(filename, processed, cal_type, calibration):
         mgr.ingest_file(calibration)
     except Exception as ingestex:
         logging.error("Unable to ingest calibration file")
+        raise
         exit(4)
 
     rqs = get_cal_requests([filead,], cal_type, procmode=None)

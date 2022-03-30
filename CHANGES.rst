@@ -1,3 +1,12 @@
+1.1.5
+=====
+
+calcheck
+^^^^^^^^
+
+- fixes to the command line tool for checking calibrations
+
+
 1.1.4
 =====
 
