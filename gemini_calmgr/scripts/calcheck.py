@@ -4,6 +4,10 @@ import sys
 import logging
 from os.path import basename
 
+from _pytest import monkeypatch
+
+from gemini_calmgr.utils import dbtools
+from gemini_calmgr.utils.dbtools import REQUIRED_TAG_DICT, instrument_table
 from gemini_obs_db.db import sessionfactory
 from recipe_system.cal_service.localmanager import extra_descript, args_for_cals, LocalManager
 from recipe_system.cal_service.calrequestlib import get_cal_requests
@@ -84,6 +88,86 @@ def build_descripts(rq):
     for (type_, desc) in list(extra_descript.items()):
         descripts[desc] = type_ in rq.tags
     return descripts
+
+
+# Copying this from the normal calibration code so I can add non-processed calibrations
+# TODO maybe make the dbtools behavior configurable to allow this without duplication
+def modified_add_diskfile_entry(session, fileobj, filename, path, fullpath):
+    """
+    Add a DiskFile record for the given file.
+
+    Parameters
+    ----------
+    session : :class:`~sqlalchemy.org.session.Session`
+        Database session to operate on
+    fileobj : :class:`~gemini_obs_db.orm.file.File`
+        File record to associate to
+    filename : str
+        Name of the file
+    path : str
+        Path of the file within the storage folder
+    fullpath : str
+        Full path of the file (no longer used)
+    """
+    # Instantiating the DiskFile object with a bzip2 filename will trigger
+    # creation of the unzipped cache file too.
+    diskfile = DiskFile(fileobj, filename, path)
+    session.add(diskfile)
+
+    # Instantiate an astrodata object here and pass it in to the things that
+    # need it. These are expensive to instantiate each time.
+    if diskfile.uncompressed_cache_file:
+        fullpath_for_ad = diskfile.uncompressed_cache_file
+    else:
+        fullpath_for_ad = diskfile.fullpath()
+
+    try:
+        diskfile.ad_object = astrodata.open(fullpath_for_ad)
+    except Exception as e:
+        # Failed to open astrodata object
+        print(e)
+        session.rollback()
+        return
+
+    # For the script, we do not require it to be a calibration per the required tags
+    # Check that it has the correct tags to be identified as a retrievable
+    # type of calibration (otherwise it will never be retrieved)
+    # tags = diskfile.ad_object.tags
+    # print(tags)
+    # for valid_tags in REQUIRED_TAG_DICT.values():
+    #     if tags.issuperset(valid_tags):
+    #         break
+    # else:
+    #     session.rollback()
+    #     raise ValueError("Tags do not indicate this is a valid calibration file.")
+
+    # commit DiskFile before we make the header
+    session.commit()
+
+    # This will use the diskfile ad_object if it exists, else
+    # it will use the DiskFile unzipped cache file if it exists
+    header = Header(diskfile)
+    session.add(header)
+    inst = header.instrument
+    session.commit()
+
+    # Add the instrument specific tables
+    # These will use the DiskFile unzipped cache file if it exists
+    try:
+        name, instClass = instrument_table[inst]
+        entry = instClass(header, diskfile.ad_object)
+        session.add(entry)
+        session.commit()
+    except KeyError:
+        # Unknown instrument. Maybe we should put a message?
+        pass
+
+    session.commit()
+
+    return True
+
+
+dbtools.add_diskfile_entry = modified_add_diskfile_entry
 
 
 def why_not_matching(filename, processed, cal_type, calibration):
