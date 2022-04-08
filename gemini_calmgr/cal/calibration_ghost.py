@@ -581,7 +581,7 @@ class CalibrationGHOST(Calibration):
                 .reduction(  # this may change pending feedback from Kathleen
                     'PROCESSED_ARC' if
                     self.descriptors['observation_type'] == 'ARC' else
-                    'PREPARED'
+                    'PROCESSED_UNKNOWN'  # SLIT and SLITFLAT not in core list
                 )
                 .spectroscopy(False)
                 .match_descriptors(*descripts)

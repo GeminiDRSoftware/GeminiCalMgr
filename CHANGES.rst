@@ -1,3 +1,33 @@
+1.1.5
+=====
+
+calcheck
+^^^^^^^^
+
+- fixes to the command line tool for checking calibrations
+
+
+1.1.4
+=====
+
+calibrations_*
+^^^^^^^^^^^^^^
+
+- support for QH* gcal lamps
+
+
+1.1.3
+=====
+
+Other
+-----
+
+ghost_calmgr
+^^^^^^^^^^^^
+
+- Keying off reduction type PROCESSED_UNKNOWN as that is how the reduction is set in the Header table
+
+
 1.1.2
 =====
 

@@ -142,7 +142,7 @@ class CalibrationNIRI(Calibration):
         query = \
             self.get_query() \
                 .flat(processed) \
-                .add_filters(or_(Header.gcal_lamp == 'IRhigh', Header.gcal_lamp == 'IRlow', Header.gcal_lamp == 'QH')) \
+                .add_filters(or_(Header.gcal_lamp == 'IRhigh', Header.gcal_lamp == 'IRlow', Header.gcal_lamp.like('QH%'))) \
                 .add_filters(Niri.data_section == self._parse_section(self.descriptors['data_section'])) \
                 .match_descriptors(Niri.well_depth_setting,
                                    Niri.filter_name,

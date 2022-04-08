@@ -335,7 +335,7 @@ class CalibrationGNIRS(Calibration):
         return (
             self.get_gnirs_flat_query(processed) # QH flats are just flats...
                 # ... with QH GCAL lamp
-                .add_filters(Header.gcal_lamp == 'QH')
+                .add_filters(Header.gcal_lamp.like('QH%'))
                 # Absolute time separation must be within 3 months
                 .max_interval(days=90)
                 .all(howmany, extra_order_terms=[desc(Header.observation_id == self.descriptors['observation_id'])])
