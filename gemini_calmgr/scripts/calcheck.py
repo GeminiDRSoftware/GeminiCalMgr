@@ -67,8 +67,8 @@ def debug_binary_expression(clause, cal_obj, header, diskfile, instr):
 
 def debug_boolean_clause_list(clause, cal_obj, header, diskfile, instr):
     for clause in clause.clauses:
-        for x in debug_dispatch(clause, cal_obj, header, diskfile, instr):
-            yield x
+        debug_dispatch(clause, cal_obj, header, diskfile, instr)
+        # yield x
 
 
 def debug_dispatch(clause, cal_obj, header, diskfile, instr):
