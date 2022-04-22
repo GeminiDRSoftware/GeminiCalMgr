@@ -55,6 +55,7 @@ REQUIRED_TAG_DICT = {'processed_arc': ['PROCESSED', 'ARC'],
                      'processed_fringe': ['PROCESSED', 'FRINGE'],
                      'processed_standard': ['PROCESSED', 'STANDARD'],
                      'processed_slitillum': ['PROCESSED', 'SLITILLUM'],
+                     'processed_bpm': ['PROCESSED', 'BPM'],
                      'bpm': ['BPM'],
                      'mask': ['MASK'],
                      }
@@ -218,12 +219,8 @@ def ingest_file(session, filename, path):
 
     # At this point, 'fileobj' should by a valid DB object.
 
-    print("Checking need_to_add_diskfile")
     if need_to_add_diskfile(session, fileobj, fullpath=fullpath):
-        print("Returned True, adding")
         return add_diskfile_entry(session, fileobj, filename, path, fullpath)
-    else:
-        print("Returned False, not adding")
 
     return False
 

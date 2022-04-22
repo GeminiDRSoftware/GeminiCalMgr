@@ -60,12 +60,28 @@ def _check_less_than(val, calval):
         return "fail"
 
 
+def _check_greater_than_or_equal(val, calval):
+    if val <= calval:
+        return "pass"
+    else:
+        return "fail"
+
+
+def _check_less_than_or_equal(val, calval):
+    if val >= calval:
+        return "pass"
+    else:
+        return "fail"
+
+
 _re_equals_true = re.compile(r'\w+ = true')
 _re_equals_false = re.compile(r'\w+ = false')
 _re_equals = re.compile(r'\w+ = :\w+')
 _re_not_equals = re.compile(r'\w+ != :\w+')
 _re_greater_than = re.compile(r'\w+ > :\w+')
 _re_less_than = re.compile(r'\w+ < :\w+')
+_re_greater_than_or_equal = re.compile(r'\w+ >= :\w+')
+_re_less_than_or_equal = re.compile(r'\w+ <= :\w+')
 
 _checks = [
     (_re_equals_false, _check_equals_false),
@@ -73,7 +89,9 @@ _checks = [
     (_re_equals, _check_equals),
     (_re_not_equals, _check_not_equals),
     (_re_greater_than, _check_greater_than),
-    (_re_less_than, _check_less_than)
+    (_re_less_than, _check_less_than),
+    (_re_greater_than_or_equal, _check_greater_than_or_equal),
+    (_re_less_than_or_equal, _check_less_than_or_equal)
 ]
 
 
