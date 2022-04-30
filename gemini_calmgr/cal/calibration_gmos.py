@@ -405,26 +405,19 @@ class CalibrationGMOS(Calibration):
         # Default 1 bpm
         howmany = howmany if howmany else 1
 
-        def build_query(filters):
-            return self.get_query(include_engineering=True) \
+        filters = [Header.ut_datetime <= self.descriptors['ut_datetime'],]
+        query = self.get_query(include_engineering=True) \
                     .bpm(processed) \
                     .add_filters(*filters) \
                     .match_descriptors(Header.instrument,
+                                       Header.telescope,
                                        Gmos.detector_x_bin, # Must match ccd binning
                                        Gmos.detector_y_bin)
 
-        filters = list()
-        filters.append(Header.ut_datetime <= self.descriptors['ut_datetime'])
-        query = build_query(filters)
-
-        results = query.all(howmany)
-        if not results:
-            # try without the date filter, since all bpms are later this will get the closest in time after the obs
-            query = build_query(list())
         if return_query:
-            return (query.all(howmany)), query
+            return query.all(howmany), query
         else:
-            return (query.all(howmany),)
+            return query.all(howmany)
 
     def imaging_flat(self, processed, howmany, flat_descr, filt, return_query=False):
         """
