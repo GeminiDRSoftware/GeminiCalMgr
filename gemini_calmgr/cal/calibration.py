@@ -541,7 +541,7 @@ class CalQuery(object):
         """
         Filter: shorthand for ``raw_or_processed('BPM', processed)``
         """
-        return self.raw_or_processed_by_types('BPM', processed)
+        return self.raw_or_processed('BPM', processed)
 
 
 class Calibration(object):

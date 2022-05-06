@@ -155,7 +155,7 @@ class CalibrationGMOS(Calibration):
             # If binning is set, we can use a BPM
             if 'detector_x_bin' in self.descriptors and self.descriptors['detector_x_bin'] \
                     and 'detector_y_bin' in self.descriptors and self.descriptors['detector_y_bin']:
-                self.applicable.append('bpm')
+                self.applicable.append('processed_bpm')
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
@@ -385,7 +385,7 @@ class CalibrationGMOS(Calibration):
 
     def bpm(self, processed=False, howmany=None, return_query=False):
         """
-        This method identifies the best GMOS ARC to use for the target
+        This method identifies the best GMOS BPM to use for the target
         dataset.
 
         This will match on bpms for the same instrument
@@ -393,8 +393,6 @@ class CalibrationGMOS(Calibration):
         Parameters
         ----------
 
-        processed : bool
-            Indicate if we want to retrieve processed or raw bpms
         howmany : int, default 1
             How many matches to return
 
@@ -410,7 +408,6 @@ class CalibrationGMOS(Calibration):
                     .bpm(processed) \
                     .add_filters(*filters) \
                     .match_descriptors(Header.instrument,
-                                       Header.telescope,
                                        Gmos.detector_x_bin, # Must match ccd binning
                                        Gmos.detector_y_bin)
 
