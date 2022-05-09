@@ -4,6 +4,10 @@ import sys
 import logging
 from os.path import basename
 
+from _pytest import monkeypatch
+
+from gemini_calmgr.utils import dbtools
+from gemini_calmgr.utils.dbtools import REQUIRED_TAG_DICT, instrument_table
 from gemini_obs_db.db import sessionfactory
 from recipe_system.cal_service.localmanager import extra_descript, args_for_cals, LocalManager
 from recipe_system.cal_service.calrequestlib import get_cal_requests
@@ -63,8 +67,8 @@ def debug_binary_expression(clause, cal_obj, header, diskfile, instr):
 
 def debug_boolean_clause_list(clause, cal_obj, header, diskfile, instr):
     for clause in clause.clauses:
-        for x in debug_dispatch(clause, cal_obj, header, diskfile, instr):
-            yield x
+        debug_dispatch(clause, cal_obj, header, diskfile, instr)
+        # yield x
 
 
 def debug_dispatch(clause, cal_obj, header, diskfile, instr):
@@ -84,6 +88,12 @@ def build_descripts(rq):
     for (type_, desc) in list(extra_descript.items()):
         descripts[desc] = type_ in rq.tags
     return descripts
+
+
+# TODO maybe make the dbtools behavior configurable to allow this without duplication
+# This is a hack that convinces the cal code to allow ingests of unprocessed calibrations for the DB
+# useful for testing matches
+REQUIRED_TAG_DICT["__dummy__"] = []
 
 
 def why_not_matching(filename, processed, cal_type, calibration):
