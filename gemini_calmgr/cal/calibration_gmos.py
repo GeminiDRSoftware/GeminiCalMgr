@@ -5,10 +5,12 @@ The CalibrationGMOS class
 
 import math
 
+from sqlalchemy import desc
+
 from gemini_obs_db.orm.header import Header
 from gemini_obs_db.orm.gmos import Gmos
 
-from .calibration import Calibration
+from .calibration import Calibration, DEFAULT_ORDER_BY_NONE
 from .calibration import not_imaging
 from .calibration import not_processed
 from .calibration import not_spectroscopy
@@ -149,6 +151,11 @@ class CalibrationGMOS(Calibration):
             # If it is MOS then it needs a MASK
             if 'MOS' in self.types:
                 self.applicable.append('mask')
+
+            # If binning is set, we can use a BPM
+            if 'detector_x_bin' in self.descriptors and self.descriptors['detector_x_bin'] \
+                    and 'detector_y_bin' in self.descriptors and self.descriptors['detector_y_bin']:
+                self.applicable.append('processed_bpm')
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
@@ -375,54 +382,39 @@ class CalibrationGMOS(Calibration):
             return (query.all(howmany)), query
         else:
             return (query.all(howmany))
-        # return (
-        #     self.get_query()
-        #         .bias(processed)
-        #         .add_filters(*filters)
-        #         .match_descriptors(Header.instrument,
-        #                           Gmos.detector_x_bin,
-        #                           Gmos.detector_y_bin,
-        #                           Gmos.read_speed_setting,
-        #                           Gmos.gain_setting)
-        #         # Absolute time separation must be within 3 months
-        #         .max_interval(days=90)
-        #         .all(howmany)
-        #     )
 
-    # def bias_new(self, howmany=1):
-    #     query = self.get_query()
-    #     for rule in self.bias_rules():
-    #         query = rule.updatequery(query, self, self.descriptors, 'BIAS')
-    #
-    #     return (query.all(howmany))
-    #
-    # def bias_rules(self, processed):
-    #     rules = list()
-    #     rules.append(RawOrProcessedRule('BIAS'))
-    #     if self.descriptors['detector_roi_setting'] in ['Full Frame', 'Central Spectrum']:
-    #         rules.append(MatchRule('amp_read_area',
-    #                                prefix="If `detector_roi_setting` in 'Full Frame' or 'Central Spectrum'"))
-    #     else:
-    #         if self.descriptors['amp_read_area'] is not None:
-    #             rules.append(CalContainsRule('amp_read_area',
-    #                                          prefix="If `detector_roi_setting` not in "
-    #                                                 "'Full Frame' or 'Central Spectrum' "
-    #                                                 "and `amp_read_area` is not None"))
-    #     if processed and self.descriptors['prepared'] == True:
-    #         rules.append(AndRule(MatchRule('overscan_trimmed'),
-    #                              MatchRule('overscan_subtracted'), prefix='For processed prepared data'))
-    #     rules.extend([
-    #         MatchRule('instrument'),
-    #         MatchRule('detector_x_bin'),
-    #         MatchRule('detector_y_bin'),
-    #         MatchRule('read_speed_setting'),
-    #         MatchRule('gain_setting')])
-    #     rules.append(MaxIntervalRule(90))
-    #     # TODO handle matches beyond howmany?
-    #     return rules
-    #
-    # def bias_rules_yaml(self):
-    #     return parse_yaml("/Users/ooberdorf/FitsStorage/fits_storage/cal/calibration_gmos.yml", 'bias')
+    def bpm(self, processed=False, howmany=None, return_query=False):
+        """
+        This method identifies the best GMOS BPM to use for the target
+        dataset.
+
+        This will match on bpms for the same instrument
+
+        Parameters
+        ----------
+
+        howmany : int, default 1
+            How many matches to return
+
+        Returns
+        -------
+            list of :class:`fits_storage.orm.header.Header` records that match the criteria
+        """
+        # Default 1 bpm
+        howmany = howmany if howmany else 1
+
+        filters = [Header.ut_datetime <= self.descriptors['ut_datetime'],]
+        query = self.get_query(include_engineering=True) \
+                    .bpm(processed) \
+                    .add_filters(*filters) \
+                    .match_descriptors(Header.instrument,
+                                       Gmos.detector_x_bin, # Must match ccd binning
+                                       Gmos.detector_y_bin)
+
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
     def imaging_flat(self, processed, howmany, flat_descr, filt, return_query=False):
         """
@@ -468,13 +460,6 @@ class CalibrationGMOS(Calibration):
             return (query.all(howmany)), query
         else:
             return (query.all(howmany))
-        # return (
-        #     query.add_filters(*filt)
-        #          .match_descriptors(*flat_descr)
-        #          # Absolute time separation must be within 6 months
-        #          .max_interval(days=180)
-        #          .all(howmany)
-        #     )
 
     def spectroscopy_flat(self, processed, howmany, flat_descr, filt, return_query=False):
         """

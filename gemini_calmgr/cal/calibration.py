@@ -110,8 +110,12 @@ class CalQuery(object):
     Activate the full query if will need access to the ``DiskFile/File``
     associated with a Header.
 
+    `include_engineering` is used if we don't want to exclude files
+    marked as engineering.  This is mainly for bpm support as existing
+    bpms are engineering.
+
     """
-    def __init__(self, session, instrClass, descriptors, procmode=None, full_query=False):
+    def __init__(self, session, instrClass, descriptors, procmode=None, full_query=False, include_engineering=False):
         # Keep a copy of the instrument descriptors and start the query with some
         # common filters
         self.procmode = procmode
@@ -129,10 +133,11 @@ class CalQuery(object):
         # elif procmode == 'ql':
         #     query = query.filter(Header.procmode.in_(['ql', 'sq']))
 
-        self.query = (query.filter(DiskFile.canonical == True) # Search canonical entries
-                           .filter(Header.qa_state != 'Fail')  # Knock out FAILs
-			   .filter(Header.engineering == False)) # No engineering data
-
+        query = query.filter(DiskFile.canonical == True) \
+                     .filter(Header.qa_state != 'Fail')  # Knock out FAILs
+        if not include_engineering:
+            query = query.filter(Header.engineering == False) # No engineering data
+        self.query = query
 
     def __call_through(self, query_method, *args, **kw):
         """
@@ -141,7 +146,6 @@ class CalQuery(object):
         """
         self.query = query_method(*args, **kw)
         return self
-
 
     def add_filters(self, *args):
         """
@@ -533,6 +537,12 @@ class CalQuery(object):
         """
         return self.raw_or_processed_by_types('SLITILLUM', processed)
 
+    def bpm(self, processed=False):
+        """
+        Filter: shorthand for ``raw_or_processed('BPM', processed)``
+        """
+        return self.raw_or_processed('BPM', processed)
+
 
 class Calibration(object):
     """
@@ -611,13 +621,14 @@ class Calibration(object):
         # Set the list of applicable calibrations
         self.set_applicable()
 
-    def get_query(self):
+    def get_query(self, include_engineering=False):
         """
         Returns an ``CalQuery`` object, populated with the current session,
         instrument class, descriptors and the setting for full/not-full query.
 
         """
-        return CalQuery(self.session, self.instrClass, self.descriptors, procmode=self.procmode, full_query=self.full_query)
+        return CalQuery(self.session, self.instrClass, self.descriptors, procmode=self.procmode,
+                        full_query=self.full_query, include_engineering=include_engineering)
 
     def set_applicable(self):
         """
@@ -718,5 +729,9 @@ class Calibration(object):
         return []
 
     def slitillum(self, processed=False, howmany=None):
+        # Not defined for this instrument
+        return []
+
+    def bpm(self, processed=False, howmany=None):
         # Not defined for this instrument
         return []

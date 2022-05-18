@@ -16,7 +16,8 @@ mapping = {
     'processed_arc': ('arc', { 'processed': True }),
     'processed_dark': ('dark', { 'processed': True }),
     'processed_standard': ('standard', { 'processed': True }),
-    'processed_slitillum': ('slitillum', { 'processed': True })
+    'processed_slitillum': ('slitillum', { 'processed': True }),
+    'processed_bpm': ('bpm', { 'processed': True }),
     }
 
 
