@@ -33,6 +33,7 @@ class CalibrationGMOS(Calibration):
         'focal_plane_mask',
         'detector_x_bin',
         'detector_y_bin',
+        'array_name',
         'amp_read_area',
         'read_speed_setting',
         'gain_setting',
@@ -402,7 +403,9 @@ class CalibrationGMOS(Calibration):
         # Default 1 bpm
         howmany = howmany if howmany else 1
 
-        filters = [Header.ut_datetime <= self.descriptors['ut_datetime'],]
+        filters = [Header.ut_datetime <= self.descriptors['ut_datetime'],
+                   Gmos.array_name.like('%' + self.descriptors['array_name'] + '%'),
+                   ]
         query = self.get_query(include_engineering=True) \
                     .bpm(processed) \
                     .add_filters(*filters) \
