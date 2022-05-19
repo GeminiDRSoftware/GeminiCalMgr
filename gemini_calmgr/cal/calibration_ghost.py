@@ -133,6 +133,8 @@ class CalibrationGHOST(Calibration):
             if 'MOS' in self.types:
                 self.applicable.append('mask')
 
+            self.applicable.append('processed_bpm')
+
     @not_imaging
     def arc(self, processed=False, howmany=2):
         """
@@ -201,6 +203,37 @@ class CalibrationGHOST(Calibration):
                 .max_interval(days=365)
                 .all(howmany)
             )
+
+    def bpm(self, processed=False, howmany=None, return_query=False):
+        """
+        This method identifies the best BPM to use for the target
+        dataset.
+
+        This will match on bpms for the same instrument
+
+        Parameters
+        ----------
+
+        howmany : int, default 1
+            How many matches to return
+
+        Returns
+        -------
+            list of :class:`fits_storage.orm.header.Header` records that match the criteria
+        """
+        # Default 1 bpm
+        howmany = howmany if howmany else 1
+
+        filters = [Header.ut_datetime <= self.descriptors['ut_datetime'],]
+        query = self.get_query(include_engineering=True) \
+                    .bpm(processed) \
+                    .add_filters(*filters) \
+                    .match_descriptors(Header.instrument,)
+
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
     def dark(self, processed=False, howmany=None):
         """

@@ -68,6 +68,8 @@ class CalibrationF2(Calibration):
             self.applicable.append('flat')
             self.applicable.append('processed_flat')
 
+        self.applicable.append('processed_bpm')
+
     def dark(self, processed=False, howmany=None):
         """
         Get a query for darks appropriate for F2.
@@ -164,6 +166,37 @@ class CalibrationF2(Calibration):
                 .max_interval(days=90)
                 .all(howmany)
             )
+
+    def bpm(self, processed=False, howmany=None, return_query=False):
+        """
+        This method identifies the best BPM to use for the target
+        dataset.
+
+        This will match on bpms for the same instrument
+
+        Parameters
+        ----------
+
+        howmany : int, default 1
+            How many matches to return
+
+        Returns
+        -------
+            list of :class:`fits_storage.orm.header.Header` records that match the criteria
+        """
+        # Default 1 bpm
+        howmany = howmany if howmany else 1
+
+        filters = [Header.ut_datetime <= self.descriptors['ut_datetime'],]
+        query = self.get_query(include_engineering=True) \
+                    .bpm(processed) \
+                    .add_filters(*filters) \
+                    .match_descriptors(Header.instrument,)
+
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
     @not_processed
     def photometric_standard(self, processed=False, howmany=None):

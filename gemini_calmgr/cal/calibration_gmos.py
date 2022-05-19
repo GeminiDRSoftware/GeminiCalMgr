@@ -285,7 +285,6 @@ class CalibrationGMOS(Calibration):
         # of *seconds* different - going to choose darks within 50 secs for now...
         # That's why we're using a tolerance to match the exposure time
 
-        print(f"self.descriptors['nodandshuffle']: {self.descriptors['nodandshuffle']}")
         query = \
             self.get_query() \
                 .dark(processed) \
