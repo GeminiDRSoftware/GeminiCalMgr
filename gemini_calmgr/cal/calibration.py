@@ -612,11 +612,12 @@ class Calibration(object):
         # Here, we patch in any needed aliases for descriptors that have changed their names.  This is
         # needed when the DB field name no longer matches an updated descriptor name.  For now, this is
         # for shuffle_pixels which is the new name for nod_pixels, but the databases all have nod_pixels
-        updater = {}
-        for k, v in self.descriptors.items():
-            if k in _remappings and _remappings[k] not in self.descriptors:
-                updater[_remappings[k]] = v
-        self.descriptors.update(updater)
+        if self.descriptors is not None:
+            updater = {}
+            for k, v in self.descriptors.items():
+                if k in _remappings and _remappings[k] not in self.descriptors:
+                    updater[_remappings[k]] = v
+            self.descriptors.update(updater)
 
         # Set the list of applicable calibrations
         self.set_applicable()

@@ -403,20 +403,24 @@ class CalibrationGMOS(Calibration):
         # Default 1 bpm
         howmany = howmany if howmany else 1
 
-        filters = [Header.ut_datetime <= self.descriptors['ut_datetime'],
-                   Gmos.array_name.like('%' + self.descriptors['array_name'] + '%'),
-                   ]
-        query = self.get_query(include_engineering=True) \
-                    .bpm(processed) \
-                    .add_filters(*filters) \
-                    .match_descriptors(Header.instrument,
-                                       Gmos.detector_x_bin, # Must match ccd binning
-                                       Gmos.detector_y_bin)
+        if self.descriptors['array_name'] is None or self.descriptors['array_name'].strip() == '':
+            results = list()
+        else:
+            filters = [Header.ut_datetime <= self.descriptors['ut_datetime'],
+                       Gmos.array_name.like('%' + self.descriptors['array_name'] + '%'),
+                       ]
+            query = self.get_query(include_engineering=True) \
+                        .bpm(processed) \
+                        .add_filters(*filters) \
+                        .match_descriptors(Header.instrument,
+                                           Gmos.detector_x_bin, # Must match ccd binning
+                                           Gmos.detector_y_bin)
+            results = query.all(howmany)
 
         if return_query:
-            return query.all(howmany), query
+            return results, query
         else:
-            return query.all(howmany)
+            return results
 
     def imaging_flat(self, processed, howmany, flat_descr, filt, return_query=False):
         """
