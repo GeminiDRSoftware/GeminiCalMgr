@@ -1,3 +1,17 @@
+1.1.12
+======
+
+debugging
+^^^^^^^^^
+
+- improved support for Group query elements
+
+calibration_nifs
+^^^^^^^^^^^^^^^^
+
+- support for NIFS calibration debugging
+
+
 1.1.5
 =====
 
