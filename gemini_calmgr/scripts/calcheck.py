@@ -13,7 +13,7 @@ from recipe_system.cal_service.localmanager import extra_descript, args_for_cals
 from recipe_system.cal_service.calrequestlib import get_cal_requests
 from gemini_calmgr.cal import get_cal_object
 
-from sqlalchemy.sql.elements import BooleanClauseList, BinaryExpression
+from sqlalchemy.sql.elements import BooleanClauseList, BinaryExpression, Grouping
 
 import astrodata
 import gemini_instruments
@@ -65,7 +65,7 @@ def debug_binary_expression(clause, cal_obj, header, diskfile, instr):
             show_line(table.name, key, getattr(instr, key), val, expr)
 
 
-def debug_boolean_clause_list(clause, cal_obj, header, diskfile, instr):
+def debug_boolean_clause_list(clause, cal_obj, header, diskfile, instr, is_or=False):
     for clause in clause.clauses:
         debug_dispatch(clause, cal_obj, header, diskfile, instr)
         # yield x
@@ -76,6 +76,14 @@ def debug_dispatch(clause, cal_obj, header, diskfile, instr):
         debug_boolean_clause_list(clause, cal_obj, header, diskfile, instr)
     elif isinstance(clause, BinaryExpression):
         debug_binary_expression(clause, cal_obj, header, diskfile, instr)
+    elif isinstance(clause, Grouping):
+        if 'OR' in str(clause) and isinstance(clause.element, BooleanClauseList):
+            # ew, need to debug an OR
+            print("\u001b[33mOR Expression:\u001b[37m")
+            debug_boolean_clause_list(clause.element, cal_obj, header, diskfile, instr, is_or=True)
+            print("\u001b[33mOR Expression Complete\u001b[37m")
+        else:
+            print("Unsupported query element: %s" % str(clause))
 
 
 def debug_parser(query, cal_obj, header, diskfile, instr):
