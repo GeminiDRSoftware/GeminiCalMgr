@@ -68,7 +68,7 @@ class CalibrationF2(Calibration):
             self.applicable.append('flat')
             self.applicable.append('processed_flat')
 
-    def dark(self, processed=False, howmany=None):
+    def dark(self, processed=False, howmany=None, return_query=False):
         """
         Get a query for darks appropriate for F2.
 
@@ -79,17 +79,19 @@ class CalibrationF2(Calibration):
         if howmany is None:
             howmany = 1 if processed else 10
 
-        return (
+        query = (
             self.get_query()
                 .dark(processed=processed)
                 .match_descriptors(Header.exposure_time,
                                    F2.read_mode)
                 # Must totally match: read_mode, exposure_time
                 .max_interval(days=90)
-                .all(howmany)
             )
 
-        return query.all()
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
     @staticmethod
     def common_descriptors():
@@ -102,7 +104,7 @@ class CalibrationF2(Calibration):
         """
         return (F2.disperser, F2.lyot_stop, F2.filter_name, F2.focal_plane_mask)
 
-    def flat(self, processed=False, howmany=None):
+    def flat(self, processed=False, howmany=None, return_query=False):
         """
         Get matching flats for an F2 observation.
 
@@ -122,7 +124,7 @@ class CalibrationF2(Calibration):
         if howmany is None:
             howmany = 1 if processed else 10
 
-        return (
+        query = (
             self.get_query()
                 .flat(processed=processed)
                 # Must totally match: disperser, central_wavelength (spect only), focal_plane_mask, filter_name, lyot_stop, read_mode
@@ -131,10 +133,14 @@ class CalibrationF2(Calibration):
                 .tolerance(central_wavelength=0.001, condition=self.descriptors['spectroscopy'])
                 # Absolute time separation must be within 3 months
                 .max_interval(days=90)
-                .all(howmany)
             )
 
-    def arc(self, processed=False, howmany=None):
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
+
+    def arc(self, processed=False, howmany=None, return_query=False):
         """
         Get matching arcs for an F2 observation.
 
@@ -154,7 +160,7 @@ class CalibrationF2(Calibration):
         # Default number to associate is 1
         howmany = howmany if howmany else 1
 
-        return (
+        query = (
             self.get_query()
                 .arc(processed=processed)
                 # Must Totally Match: disperser, central_wavelength, focal_plane_mask, filter_name, lyot_stop
@@ -162,11 +168,14 @@ class CalibrationF2(Calibration):
                 .tolerance(central_wavelength=0.001)
                 # Absolute time separation must be within 3 months
                 .max_interval(days=90)
-                .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
     @not_processed
-    def photometric_standard(self, processed=False, howmany=None):
+    def photometric_standard(self, processed=False, howmany=None, return_query=False):
         """
         Get matching photometric standards for an F2 observation.
 
@@ -189,7 +198,7 @@ class CalibrationF2(Calibration):
         # Default number to associate
         howmany = howmany if howmany else 10
 
-        return (
+        query = (
             self.get_query()
                 # Photometric standards are OBJECT imaging partnerCal frames
                 .photometric_standard(OBJECT=True, partnerCal=True)
@@ -197,11 +206,14 @@ class CalibrationF2(Calibration):
                                    F2.lyot_stop)
                 # Absolute time separation must be within 24 hours of the science
                 .max_interval(days=1)
-                .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
     @not_processed
-    def telluric_standard(self, processed=False, howmany=None):
+    def telluric_standard(self, processed=False, howmany=None, return_query=False):
         """
         Get matching telluric standards for an F2 observation.
 
@@ -224,7 +236,7 @@ class CalibrationF2(Calibration):
         # Default number to associate
         howmany = howmany if howmany else 10
 
-        return (
+        query = (
             self.get_query()
                 # Telluric standards are OBJECT spectroscopy partnerCal frames
                 .telluric_standard(OBJECT=True, partnerCal=True)
@@ -232,5 +244,9 @@ class CalibrationF2(Calibration):
                 .tolerance(central_wavelength=0.001)
                 # Absolute time separation must be within 24 hours of the science
                 .max_interval(days=1)
-                .all(howmany)
             )
+
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
