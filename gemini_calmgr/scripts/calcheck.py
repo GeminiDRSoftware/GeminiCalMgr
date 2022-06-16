@@ -22,6 +22,14 @@ from gemini_obs_db.orm.header import Header
 from gemini_obs_db.orm.diskfile import DiskFile
 from gemini_obs_db.orm.gmos import Gmos
 from gemini_obs_db.orm.niri import Niri
+from gemini_obs_db.orm.f2 import F2
+from gemini_obs_db.orm.nifs import Nifs
+from gemini_obs_db.orm.gnirs import Gnirs
+from gemini_obs_db.orm.ghost import Ghost
+from gemini_obs_db.orm.nici import Nici
+from gemini_obs_db.orm.michelle import Michelle
+from gemini_obs_db.orm.gsaoi import Gsaoi
+from gemini_obs_db.orm.gpi import Gpi
 
 from gemini_calmgr.utils.debugging import get_status, get_calibration_type
 
@@ -59,9 +67,9 @@ def debug_binary_expression(clause, cal_obj, header, diskfile, instr):
         expr = "%s" % clause
         if table.name == 'header':
             show_line(table.name, key, getattr(header, key), val, expr)
-        if table.name == 'diskfile':
+        elif table.name == 'diskfile':
             show_line(table.name, key, getattr(diskfile, key), val, expr)
-        if table.name == 'gmos':
+        else:
             show_line(table.name, key, getattr(instr, key), val, expr)
 
 
@@ -161,7 +169,27 @@ def why_not_matching(filename, processed, cal_type, calibration):
 
             header = mgr.session.query(Header).first()
             diskfile = mgr.session.query(DiskFile).first()
-            instr = mgr.session.query(Gmos).first()
+            if calad.instrument().lower().startswith("gmos"):
+                instr = mgr.session.query(Gmos).first()
+            elif calad.instrument().lower() == "f2":
+                instr = mgr.session.query(F2).first()
+            elif calad.instrument().lower() == "nifs":
+                instr = mgr.session.query(Nifs).first()
+            elif calad.instrument().lower() == "niri":
+                instr = mgr.session.query(Niri).first()
+            elif calad.instrument().lower() == "gnirs":
+                instr = mgr.session.query(Gnirs).first()
+            elif calad.instrument().lower() == "ghost":
+                instr = mgr.session.query(Ghost).first()
+            elif calad.instrument().lower() == "nici":
+                instr = mgr.session.query(Nici).first()
+            elif calad.instrument().lower() == "michelle":
+                instr = mgr.session.query(Michelle).first()
+            elif calad.instrument().lower() == "gsaoi":
+                instr = mgr.session.query(Gsaoi).first()
+            elif calad.instrument().lower() == "gpi":
+                instr = mgr.session.query(Gpi).first()
+
             print('Relevant fields from calibration:\n')
             print('Table     | Key                | Cal Value                      '
                   '| Value                          | Expr')

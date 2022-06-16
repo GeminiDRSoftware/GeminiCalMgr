@@ -231,7 +231,7 @@ class CalibrationNIRI(Calibration):
             return query.all(howmany)
 
     @not_processed
-    def lampoff_flat(self, processed=False, howmany=None):
+    def lampoff_flat(self, processed=False, howmany=None, return_query=False):
         """
          Method to find the lamp off flats
 
@@ -255,7 +255,7 @@ class CalibrationNIRI(Calibration):
         # Default number to associate
         howmany = howmany if howmany else 10
 
-        return (
+        query = (
             self.get_query()
                 .flat()
                 .add_filters(Header.gcal_lamp == 'Off')
@@ -266,11 +266,14 @@ class CalibrationNIRI(Calibration):
                                    Niri.disperser)
                 # Absolute time separation must be within 1 hour of the lamp on flats
                 .max_interval(seconds=3600)
-                .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
     @not_processed
-    def photometric_standard(self, processed=False, howmany=None):
+    def photometric_standard(self, processed=False, howmany=None, return_query=False):
         """
          Method to find the photometric standards
 
@@ -295,7 +298,7 @@ class CalibrationNIRI(Calibration):
         # Default number to associate
         howmany = howmany if howmany else 10
 
-        return (
+        query = (
             self.get_query()
                 # Phot standards are OBJECT imaging frames
                 .raw().OBJECT().spectroscopy(False)
@@ -305,11 +308,14 @@ class CalibrationNIRI(Calibration):
                                    Niri.camera)
                 # Absolute time separation must be within 24 hours of the science
                 .max_interval(days=1)
-                .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
     @not_processed
-    def telluric_standard(self, processed=False, howmany=None):
+    def telluric_standard(self, processed=False, howmany=None, return_query=False):
         """
          Method to find the telluric standards
 
@@ -333,7 +339,7 @@ class CalibrationNIRI(Calibration):
         # Default number to associate
         howmany = howmany if howmany else 10
 
-        return (
+        query = (
             self.get_query()
                 # Telluric standards are OBJECT spectroscopy partnerCal frames
                 .telluric_standard(OBJECT=True, partnerCal=True)
@@ -344,5 +350,8 @@ class CalibrationNIRI(Calibration):
                 .tolerance(central_wavelength = 0.001)
                 # Absolute time separation must be within 24 hours of the science
                 .max_interval(days=1)
-                .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)

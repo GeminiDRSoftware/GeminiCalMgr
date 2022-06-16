@@ -116,7 +116,7 @@ class CalibrationGNIRS(Calibration):
         else:
             return query.all(howmany)
 
-    def dark(self, processed=False, howmany=None):
+    def dark(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal GNIRS Dark for this target frame
 
@@ -139,7 +139,7 @@ class CalibrationGNIRS(Calibration):
         if howmany is None:
             howmany = 1 if processed else 10
 
-        return (
+        query = (
             self.get_query()
                 .dark(processed=processed)
                 # Must totally match: read_mode, well_depth_setting, exposure_time, coadds
@@ -149,8 +149,11 @@ class CalibrationGNIRS(Calibration):
                                    Header.coadds)
                 # Absolute time separation must be within 3 months
                 .max_interval(days=90)
-                .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
     def get_gnirs_flat_query(self, processed):
         """
@@ -185,7 +188,7 @@ class CalibrationGNIRS(Calibration):
             .if_(self.descriptors['spectroscopy'], 'tolerance', central_wavelength=0.001)
         )
 
-    def flat(self, processed=False, howmany=None):
+    def flat(self, processed=False, howmany=None, return_query=False):
         """
         Utility method for getting a query for GNIRS flats
 
@@ -222,7 +225,7 @@ class CalibrationGNIRS(Calibration):
         if howmany is None:
             howmany = 1 if processed else 10
 
-        return (
+        query = (
             self.get_gnirs_flat_query(processed)
                 # Lamp selection (see comments above)
                 .add_filters(Header.gcal_lamp == 'IRhigh')
@@ -230,8 +233,14 @@ class CalibrationGNIRS(Calibration):
                 .max_interval(days=90)
                 .all(howmany, extra_order_terms=[desc(Header.observation_id == self.descriptors['observation_id'])])
             )
+        if return_query:
+            return query.all(howmany, extra_order_terms=[desc(Header.observation_id
+                                                              == self.descriptors['observation_id'])]), query
+        else:
+            return query.all(howmany, extra_order_terms=[desc(Header.observation_id
+                                                              == self.descriptors['observation_id'])])
 
-    def arc(self, processed=False, howmany=None):
+    def arc(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal GNIRS ARC for this target frame
 
@@ -253,7 +262,7 @@ class CalibrationGNIRS(Calibration):
         # Always default to 1 arc
         howmany = howmany if howmany else 1
 
-        return (
+        query = (
             self.get_query()
                 .arc(processed=processed)
                 # Must Totally Match: disperser, central_wavelength, focal_plane_mask, filter_name, camera
@@ -264,10 +273,13 @@ class CalibrationGNIRS(Calibration):
                                    Gnirs.camera)
                 # Absolute time separation must be within 1 year
                 .max_interval(days=365)
-                .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
-    def pinhole_mask(self, processed=False, howmany=None):
+    def pinhole_mask(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal GNIRS Pinhole Mask for this target frame
 
@@ -289,7 +301,7 @@ class CalibrationGNIRS(Calibration):
         if howmany is None:
             howmany = 1 if processed else 5
 
-        return (
+        query = (
             self.get_query()
                 .pinhole(processed)
                 # Must totally match: disperser, central_wavelength, camera, (only for cross dispersed mode?)
@@ -298,11 +310,14 @@ class CalibrationGNIRS(Calibration):
                                    Gnirs.camera)
                 # Absolute time separation must be within 1 year
                 .max_interval(days=365)
-                .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
     @not_processed
-    def lampoff_flat(self, processed=False, howmany=None):
+    def lampoff_flat(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal lamp-off flats to go with the lamp-on flat
 
@@ -325,15 +340,20 @@ class CalibrationGNIRS(Calibration):
         # Default number of raw lampoff flats
         howmany = howmany if howmany else 10
 
-        return (
+        query = (
             self.get_gnirs_flat_query(processed=False) # lampoff flats are just Raw flats...
                 .add_filters(Header.gcal_lamp == 'Off')
                 # Absolute time separation must be within 1 day
                 .max_interval(days=1)
-                .all(howmany, extra_order_terms=[desc(Header.observation_id == self.descriptors['observation_id'])])
             )
+        if return_query:
+            return query.all(howmany, extra_order_terms=[desc(Header.observation_id
+                                                              == self.descriptors['observation_id'])]), query
+        else:
+            return query.all(howmany, extra_order_terms=[desc(Header.observation_id
+                                                              == self.descriptors['observation_id'])])
 
-    def qh_flat(self, processed=False, howmany=None):
+    def qh_flat(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal GNIRS QH flat field for this target frame
 
@@ -365,16 +385,21 @@ class CalibrationGNIRS(Calibration):
         if howmany is None:
             howmany = 1 if processed else 10
 
-        return (
+        query = (
             self.get_gnirs_flat_query(processed) # QH flats are just flats...
                 # ... with QH GCAL lamp
                 .add_filters(Header.gcal_lamp.like('QH%'))
                 # Absolute time separation must be within 3 months
                 .max_interval(days=90)
-                .all(howmany, extra_order_terms=[desc(Header.observation_id == self.descriptors['observation_id'])])
             )
+        if return_query:
+            return query.all(howmany, extra_order_terms=[desc(Header.observation_id
+                                                              == self.descriptors['observation_id'])]), query
+        else:
+            return query.all(howmany, extra_order_terms=[desc(Header.observation_id
+                                                              == self.descriptors['observation_id'])])
 
-    def telluric_standard(self, processed=False, howmany=None):
+    def telluric_standard(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal GNIRS telluric observations for this target frame
 
@@ -397,7 +422,7 @@ class CalibrationGNIRS(Calibration):
         if howmany is None:
             howmany = 1 if processed else 8
 
-        return (
+        query = (
             self.get_query()
                 .telluric_standard(processed=processed, OBJECT=True, partnerCal=True)
                 # Must totally match: disperser, central_wavelength, focal_plane_mask, camera, filter_name
@@ -410,5 +435,8 @@ class CalibrationGNIRS(Calibration):
                 .add_filters(or_(Header.qa_state == 'Pass', Header.qa_state == 'Undefined'))
                 # Absolute time separation must be within 1 day
                 .max_interval(days=1)
-                .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)

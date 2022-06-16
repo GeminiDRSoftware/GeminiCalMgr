@@ -67,7 +67,7 @@ class CalibrationNICI(Calibration):
         else:
             return query.all(howmany)
 
-    def dark(self, processed=False, howmany=None):
+    def dark(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal NICI Dark for this target frame
 
@@ -88,7 +88,7 @@ class CalibrationNICI(Calibration):
         if howmany is None:
             howmany = 1 if processed else 10
 
-        return (
+        query = (
             self.get_query()
                 .dark(processed)
                 # Exposure time must match to within 0.01 (nb floating point match).
@@ -96,10 +96,13 @@ class CalibrationNICI(Calibration):
                 .tolerance(exposure_time = 0.01)
                 # Absolute time separation must be within 1 day
                 .max_interval(days=1)
-                .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
-    def flat(self, processed=False, howmany=None):
+    def flat(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal NICI Flat for this target frame
 
@@ -121,7 +124,7 @@ class CalibrationNICI(Calibration):
         if howmany is None:
             howmany = 1 if processed else 10
 
-        return (
+        query = (
             self.get_query()
                 .flat(processed)
                 # GCAL lamp should be on - these flats will then require lamp-off flats to calibrate them
@@ -131,11 +134,14 @@ class CalibrationNICI(Calibration):
                                    Nici.disperser)
                 # Absolute time separation must be within 1 day
                 .max_interval(days=1)
-                .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
     @not_processed
-    def lampoff_flat(self, processed=False, howmany=None):
+    def lampoff_flat(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal NICI Lamp-off Flat for this target frame
 
@@ -157,7 +163,7 @@ class CalibrationNICI(Calibration):
         # Default number to associate
         howmany = howmany if howmany else 10
 
-        return (
+        query = (
             self.get_query()
                 .flat()
                 .add_filters(Header.gcal_lamp == 'Off')
@@ -169,5 +175,8 @@ class CalibrationNICI(Calibration):
                                    Nici.disperser)
                 # Absolute time separation must be within 1 hour of the lamp on flats
                 .max_interval(seconds=3600)
-                .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)

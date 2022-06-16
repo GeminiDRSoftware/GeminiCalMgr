@@ -70,7 +70,7 @@ class CalibrationMICHELLE(Calibration):
         else:
             return query.all(howmany)
 
-    def dark(self, processed=False, howmany=None):
+    def dark(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal Michelle Dark for this target frame
 
@@ -92,7 +92,7 @@ class CalibrationMICHELLE(Calibration):
         # Default number to associate
         howmany = howmany if howmany else 10
 
-        return (
+        query = (
             self.get_query()
                 .dark()
                 .match_descriptors(Header.exposure_time,
@@ -100,10 +100,13 @@ class CalibrationMICHELLE(Calibration):
                                    Header.coadds)
                 # Absolute time separation must be within 1 day
                 .max_interval(days=1)
-                .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
-    def flat(self, processed=False, howmany=None):
+    def flat(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal Michelle Flat for this target frame
 
@@ -132,4 +135,8 @@ class CalibrationMICHELLE(Calibration):
                           .tolerance(central_wavelength=0.001))
 
         # Absolute time separation must be within 1 day
-        return query.max_interval(days=1).all(howmany)
+        query = query.max_interval(days=1)
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
