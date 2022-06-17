@@ -6,10 +6,11 @@ debugging
 
 - improved support for Group query elements
 
-calibration_nifs
-^^^^^^^^^^^^^^^^
+calibration_x
+^^^^^^^^^^^^^
 
-- support for NIFS calibration debugging
+- support for all instruments for calibration debugging
+- support for BPMs
 
 
 1.1.5
