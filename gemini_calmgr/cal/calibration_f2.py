@@ -277,6 +277,7 @@ class CalibrationF2(Calibration):
                 # Absolute time separation must be within 24 hours of the science
                 .max_interval(days=1)
             )
+
         if return_query:
             return query.all(howmany), query
         else:

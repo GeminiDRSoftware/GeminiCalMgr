@@ -1,14 +1,8 @@
-import re
-
 import sys
 import logging
 from os.path import basename
 
-from _pytest import monkeypatch
-
-from gemini_calmgr.utils import dbtools
-from gemini_calmgr.utils.dbtools import REQUIRED_TAG_DICT, instrument_table
-from gemini_obs_db.db import sessionfactory
+from gemini_calmgr.utils.dbtools import REQUIRED_TAG_DICT
 from recipe_system.cal_service.localmanager import extra_descript, args_for_cals, LocalManager
 from recipe_system.cal_service.calrequestlib import get_cal_requests
 from gemini_calmgr.cal import get_cal_object
@@ -169,6 +163,7 @@ def why_not_matching(filename, processed, cal_type, calibration):
 
             header = mgr.session.query(Header).first()
             diskfile = mgr.session.query(DiskFile).first()
+
             if calad.instrument().lower().startswith("gmos"):
                 instr = mgr.session.query(Gmos).first()
             elif calad.instrument().lower() == "f2":
