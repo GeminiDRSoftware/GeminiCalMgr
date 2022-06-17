@@ -77,7 +77,7 @@ class CalibrationNIFS(Calibration):
         query = self.get_query(include_engineering=True) \
                     .bpm(processed) \
                     .add_filters(*filters) \
-                    .match_descriptors(Header.instrument,)
+                    .match_descriptors(Header.instrument, Header.detector_binning)
 
         if return_query:
             return query.all(howmany), query
