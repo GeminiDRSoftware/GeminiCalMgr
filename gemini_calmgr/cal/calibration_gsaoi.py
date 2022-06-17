@@ -30,7 +30,40 @@ class CalibrationGSAOI(Calibration):
             self.applicable.append('processed_flat')
             self.applicable.append('photometric_standard')
 
-    def domeflat(self, processed=False, howmany=None):
+        self.applicable.append('processed_bpm')
+
+    def bpm(self, processed=False, howmany=None, return_query=False):
+        """
+        This method identifies the best BPM to use for the target
+        dataset.
+
+        This will match on bpms for the same instrument
+
+        Parameters
+        ----------
+
+        howmany : int, default 1
+            How many matches to return
+
+        Returns
+        -------
+            list of :class:`fits_storage.orm.header.Header` records that match the criteria
+        """
+        # Default 1 bpm
+        howmany = howmany if howmany else 1
+
+        filters = [Header.ut_datetime <= self.descriptors['ut_datetime'],]
+        query = self.get_query(include_engineering=True) \
+                    .bpm(processed) \
+                    .add_filters(*filters) \
+                    .match_descriptors(Header.instrument, Header.detector_binning)
+
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
+
+    def domeflat(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal GSAOI dome flat for this target frame
 
@@ -61,14 +94,17 @@ class CalibrationGSAOI(Calibration):
                          # Notice that object() is observation_type=='OBJECT', in case the next confuses you...
                          .add_filters(Header.object == 'Domeflat'))
 
-        return (
+        query = (
                 # Common filter, with absolute time separation within a month
             query.match_descriptors(Gsaoi.filter_name)
                  .max_interval(days=30)
-                 .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
-    def lampoff_domeflat(self, processed=False, howmany=None):
+    def lampoff_domeflat(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal GSAOI lamp off flat for this target frame
 
@@ -100,12 +136,15 @@ class CalibrationGSAOI(Calibration):
                          # Notice that object() is observation_type=='OBJECT', in case the next confuses you...
                          .add_filters(Header.object == 'Domeflat OFF'))
 
-        return (
+        query = (
                 # Common filter, with absolute time separation within a month
             query.match_descriptors(Gsaoi.filter_name)
                  .max_interval(days=30)
-                 .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
     # For gsaoi, domeflats are the only flats
     flat = domeflat
@@ -113,7 +152,7 @@ class CalibrationGSAOI(Calibration):
 
     # Processed photometric standards haven't been implemented
     @not_processed
-    def photometric_standard(self, processed=False, howmany=None):
+    def photometric_standard(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal GSAOI photometric standard for this target frame
 
@@ -135,11 +174,14 @@ class CalibrationGSAOI(Calibration):
         # Default number to associate
         howmany = howmany if howmany else 8
 
-        return (
+        query = (
             self.get_query()
                 .raw().OBJECT().partnerCal()
                 # Common filter, with absolute time separation within a month
                 .match_descriptors(Gsaoi.filter_name)
                 .max_interval(days=30)
-                .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)

@@ -68,6 +68,8 @@ class CalibrationF2(Calibration):
             self.applicable.append('flat')
             self.applicable.append('processed_flat')
 
+        self.applicable.append('processed_bpm')
+
     def dark(self, processed=False, howmany=None, return_query=False):
         """
         Get a query for darks appropriate for F2.
@@ -134,7 +136,6 @@ class CalibrationF2(Calibration):
                 # Absolute time separation must be within 3 months
                 .max_interval(days=90)
             )
-
         if return_query:
             return query.all(howmany), query
         else:
@@ -169,6 +170,37 @@ class CalibrationF2(Calibration):
                 # Absolute time separation must be within 3 months
                 .max_interval(days=90)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
+
+    def bpm(self, processed=False, howmany=None, return_query=False):
+        """
+        This method identifies the best BPM to use for the target
+        dataset.
+
+        This will match on bpms for the same instrument
+
+        Parameters
+        ----------
+
+        howmany : int, default 1
+            How many matches to return
+
+        Returns
+        -------
+            list of :class:`fits_storage.orm.header.Header` records that match the criteria
+        """
+        # Default 1 bpm
+        howmany = howmany if howmany else 1
+
+        filters = [Header.ut_datetime <= self.descriptors['ut_datetime'],]
+        query = self.get_query(include_engineering=True) \
+                    .bpm(processed) \
+                    .add_filters(*filters) \
+                    .match_descriptors(Header.instrument, Header.detector_binning)
+
         if return_query:
             return query.all(howmany), query
         else:

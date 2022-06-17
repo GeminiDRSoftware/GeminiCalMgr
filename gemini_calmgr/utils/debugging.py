@@ -47,28 +47,28 @@ def _check_not_equals(val, calval):
 
 
 def _check_greater_than(val, calval):
-    if val < calval:
+    if calval is not None and val < calval:
         return "pass"
     else:
         return "fail"
 
 
 def _check_less_than(val, calval):
-    if val > calval:
+    if calval is not None and val > calval:
         return "pass"
     else:
         return "fail"
 
 
 def _check_greater_than_or_equal(val, calval):
-    if val <= calval:
+    if calval is not None and val <= calval:
         return "pass"
     else:
         return "fail"
 
 
 def _check_less_than_or_equal(val, calval):
-    if val >= calval:
+    if calval is not None and val >= calval:
         return "pass"
     else:
         return "fail"
@@ -87,17 +87,17 @@ def _check_like(val, calval):
     if val == '%' or val == '%%':
         return "pass"
     if val.startswith('%') and val.endswith('%'):
-        if val[1:-1] in calval:
+        if calval is not None and val[1:-1] in calval:
             return "pass"
         else:
             return "fail"
     elif val.startswith('%'):
-        if calval.endswith(val[1:]):
+        if calval is not None and calval.endswith(val[1:]):
             return "pass"
         else:
             return "fail"
     elif val.endswith('%'):
-        if calval.starswith(val[:-1]):
+        if calval is not None and calval.startswith(val[:-1]):
             return "pass"
         else:
             return "fail"

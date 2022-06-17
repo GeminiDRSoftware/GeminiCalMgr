@@ -1,19 +1,13 @@
-import re
-
 import sys
 import logging
 from os.path import basename
 
-from _pytest import monkeypatch
-
-from gemini_calmgr.utils import dbtools
-from gemini_calmgr.utils.dbtools import REQUIRED_TAG_DICT, instrument_table
-from gemini_obs_db.db import sessionfactory
+from gemini_calmgr.utils.dbtools import REQUIRED_TAG_DICT
 from recipe_system.cal_service.localmanager import extra_descript, args_for_cals, LocalManager
 from recipe_system.cal_service.calrequestlib import get_cal_requests
 from gemini_calmgr.cal import get_cal_object
 
-from sqlalchemy.sql.elements import BooleanClauseList, BinaryExpression
+from sqlalchemy.sql.elements import BooleanClauseList, BinaryExpression, Grouping
 
 import astrodata
 import gemini_instruments
@@ -21,8 +15,15 @@ import gemini_instruments
 from gemini_obs_db.orm.header import Header
 from gemini_obs_db.orm.diskfile import DiskFile
 from gemini_obs_db.orm.gmos import Gmos
-from gemini_obs_db.orm.f2 import F2
 from gemini_obs_db.orm.niri import Niri
+from gemini_obs_db.orm.f2 import F2
+from gemini_obs_db.orm.nifs import Nifs
+from gemini_obs_db.orm.gnirs import Gnirs
+from gemini_obs_db.orm.ghost import Ghost
+from gemini_obs_db.orm.nici import Nici
+from gemini_obs_db.orm.michelle import Michelle
+from gemini_obs_db.orm.gsaoi import Gsaoi
+from gemini_obs_db.orm.gpi import Gpi
 
 from gemini_calmgr.utils.debugging import get_status, get_calibration_type
 
@@ -60,13 +61,13 @@ def debug_binary_expression(clause, cal_obj, header, diskfile, instr):
         expr = "%s" % clause
         if table.name == 'header':
             show_line(table.name, key, getattr(header, key), val, expr)
-        if table.name == 'diskfile':
+        elif table.name == 'diskfile':
             show_line(table.name, key, getattr(diskfile, key), val, expr)
-        if table.name in ('gmos', 'niri', 'f2'):
+        else:
             show_line(table.name, key, getattr(instr, key), val, expr)
 
 
-def debug_boolean_clause_list(clause, cal_obj, header, diskfile, instr):
+def debug_boolean_clause_list(clause, cal_obj, header, diskfile, instr, is_or=False):
     for clause in clause.clauses:
         debug_dispatch(clause, cal_obj, header, diskfile, instr)
         # yield x
@@ -77,6 +78,14 @@ def debug_dispatch(clause, cal_obj, header, diskfile, instr):
         debug_boolean_clause_list(clause, cal_obj, header, diskfile, instr)
     elif isinstance(clause, BinaryExpression):
         debug_binary_expression(clause, cal_obj, header, diskfile, instr)
+    elif isinstance(clause, Grouping):
+        if 'OR' in str(clause) and isinstance(clause.element, BooleanClauseList):
+            # ew, need to debug an OR
+            print("\u001b[33mOR Expression:\u001b[37m")
+            debug_boolean_clause_list(clause.element, cal_obj, header, diskfile, instr, is_or=True)
+            print("\u001b[33mOR Expression Complete\u001b[37m")
+        else:
+            print("Unsupported query element: %s" % str(clause))
 
 
 def debug_parser(query, cal_obj, header, diskfile, instr):
@@ -154,13 +163,28 @@ def why_not_matching(filename, processed, cal_type, calibration):
 
             header = mgr.session.query(Header).first()
             diskfile = mgr.session.query(DiskFile).first()
-            print("calad.instrument() == %s" % calad.instrument())
-            if calad.instrument().lower().startswith('gmos'):
+
+            if calad.instrument().lower().startswith("gmos"):
                 instr = mgr.session.query(Gmos).first()
-            if calad.instrument().lower() == 'f2':
+            elif calad.instrument().lower() == "f2":
                 instr = mgr.session.query(F2).first()
-            if calad.instrument().lower() == 'niri':
+            elif calad.instrument().lower() == "nifs":
+                instr = mgr.session.query(Nifs).first()
+            elif calad.instrument().lower() == "niri":
                 instr = mgr.session.query(Niri).first()
+            elif calad.instrument().lower() == "gnirs":
+                instr = mgr.session.query(Gnirs).first()
+            elif calad.instrument().lower() == "ghost":
+                instr = mgr.session.query(Ghost).first()
+            elif calad.instrument().lower() == "nici":
+                instr = mgr.session.query(Nici).first()
+            elif calad.instrument().lower() == "michelle":
+                instr = mgr.session.query(Michelle).first()
+            elif calad.instrument().lower() == "gsaoi":
+                instr = mgr.session.query(Gsaoi).first()
+            elif calad.instrument().lower() == "gpi":
+                instr = mgr.session.query(Gpi).first()
+
             print('Relevant fields from calibration:\n')
             print('Table     | Key                | Cal Value                      '
                   '| Value                          | Expr')

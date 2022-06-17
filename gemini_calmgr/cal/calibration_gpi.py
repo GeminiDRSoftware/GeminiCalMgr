@@ -44,13 +44,46 @@ class CalibrationGPI(Calibration):
                 self.applicable.append('polarization_standard')
                 self.applicable.append('polarization_flat')
 
+        self.applicable.append('processed_bpm')
+
     @staticmethod
     def common_descriptors():
         # Must Totally Match: disperser, filter_name
         # Apparently FPM doesn't have to match...
         return (Gpi.disperser, Gpi.filter_name)
 
-    def dark(self, processed=False, howmany=None):
+    def bpm(self, processed=False, howmany=None, return_query=False):
+        """
+        This method identifies the best BPM to use for the target
+        dataset.
+
+        This will match on bpms for the same instrument
+
+        Parameters
+        ----------
+
+        howmany : int, default 1
+            How many matches to return
+
+        Returns
+        -------
+            list of :class:`fits_storage.orm.header.Header` records that match the criteria
+        """
+        # Default 1 bpm
+        howmany = howmany if howmany else 1
+
+        filters = [Header.ut_datetime <= self.descriptors['ut_datetime'],]
+        query = self.get_query(include_engineering=True) \
+                    .bpm(processed) \
+                    .add_filters(*filters) \
+                    .match_descriptors(Header.instrument, Header.detector_binning)
+
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
+
+    def dark(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal GPI DARK for this target frame
 
@@ -71,17 +104,20 @@ class CalibrationGPI(Calibration):
         #  default to 1 dark for now
         howmany = howmany if howmany else 1
 
-        return (
+        query = (
             self.get_query()
                 .dark(processed)
                 # exposure time must be within 10 seconds difference (Paul just made that up)
                 .tolerance(exposure_time=10.0)
                 # Absolute time separation must be within 1 year
                 .max_interval(days=365)
-                .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
-    def arc(self, processed=False, howmany=None):
+    def arc(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal GPI ARC for this target frame
 
@@ -102,16 +138,19 @@ class CalibrationGPI(Calibration):
         # Always default to 1 arc
         howmany = howmany if howmany else 1
 
-        return (
+        query = (
             self.get_query()
                 .arc(processed)
                 .match_descriptors(*CalibrationGPI.common_descriptors())
                 # Absolute time separation must be within 1 year
                 .max_interval(days=365)
-                .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
-    def telluric_standard(self, processed=False, howmany=None):
+    def telluric_standard(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal GPI telluric standard for this target frame
 
@@ -136,17 +175,20 @@ class CalibrationGPI(Calibration):
         if not processed:
             filters = [Header.calibration_program == True]
 
-        return (
+        query = (
             self.get_query()
                 .telluric_standard(OBJECT=True, science=True)
                 .add_filters(*filters)
                 .match_descriptors(*CalibrationGPI.common_descriptors())
                 # Absolute time separation must be within 1 year
                 .max_interval(days=365)
-                .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
-    def polarization_standard(self, processed=False, howmany=None):
+    def polarization_standard(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal GPI polarization standard for this target frame
 
@@ -178,13 +220,16 @@ class CalibrationGPI(Calibration):
                                      .add_filters(Header.calibration_program==True,
                                                   Gpi.wollaston == True))
 
-        return (
+        query = (
             query.match_descriptors(*CalibrationGPI.common_descriptors())
                  .max_interval(days=365)
-                 .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
-    def astrometric_standard(self, processed=False, howmany=None):
+    def astrometric_standard(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal GPI astrometric standard field for this target frame
 
@@ -216,14 +261,15 @@ class CalibrationGPI(Calibration):
             query = (self.get_query().raw().OBJECT()
                          .add_filters(Gpi.astrometric_standard==True))
 
-        return (
-            # Looks like we don't care about matching the usual descriptors...
-            # Absolute time separation must be within 1 year
-            query.max_interval(days=365)
-                 .all(howmany)
-            )
+        # Looks like we don't care about matching the usual descriptors...
+        # Absolute time separation must be within 1 year
+        query =query.max_interval(days=365)
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
-    def polarization_flat(self, processed=False, howmany=None):
+    def polarization_flat(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal GPI polarization flat for this target frame
 
@@ -257,9 +303,12 @@ class CalibrationGPI(Calibration):
             query = (self.get_query().flat().partnerCal()
                          .add_filters(Gpi.wollaston == True))
 
-        return (
+        query = (
             query.match_descriptors(*CalibrationGPI.common_descriptors())
                  # Absolute time separation must be within 1 year
                  .max_interval(days=365)
-                 .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
