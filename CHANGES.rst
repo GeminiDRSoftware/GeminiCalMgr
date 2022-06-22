@@ -1,6 +1,11 @@
 1.1.12
 ======
 
+calibration_f2
+^^^^^^^^^^^^^^
+
+- read_mode not needed to match for arcs and flats (checked with Joan)
+
 associate_calibrations
 ^^^^^^^^^^^^^^^^^^^^^^
 
