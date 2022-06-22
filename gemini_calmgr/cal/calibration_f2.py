@@ -33,6 +33,9 @@ class CalibrationF2(Calibration):
         # Return a list of the calibrations applicable to this dataset
         self.applicable = []
 
+        if self.descriptors['observation_tyoe'] == 'BPM':
+            return
+
         # Imaging OBJECTs require a DARK and a flat except acq images
         if (self.descriptors['observation_type'] == 'OBJECT' and
                 self.descriptors['spectroscopy'] == False and

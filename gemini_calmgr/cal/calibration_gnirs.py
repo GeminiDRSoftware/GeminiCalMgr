@@ -32,6 +32,9 @@ class CalibrationGNIRS(Calibration):
         """
         self.applicable = []
 
+        if self.descriptors['observation_type'] == 'BPM':
+            return
+
         # Science Imaging OBJECTs that are not acq or acqCal require a DARK and a FLAT
         if ((self.descriptors['observation_type'] == 'OBJECT') and
                 (self.descriptors['observation_class'] not in ['acq', 'acqCal']) and

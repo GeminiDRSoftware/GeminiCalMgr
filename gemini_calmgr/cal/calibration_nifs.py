@@ -27,6 +27,9 @@ class CalibrationNIFS(Calibration):
         # Return a list of the calibrations applicable to this NIFS dataset
         self.applicable = []
 
+        if self.descriptors['observation_type'] == 'BPM':
+            return
+
         # Science Imaging OBJECTs require a DARK
         if (self.descriptors['observation_type'] == 'OBJECT' and
                 self.descriptors['spectroscopy'] == False and

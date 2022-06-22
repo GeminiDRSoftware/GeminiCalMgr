@@ -25,6 +25,9 @@ class CalibrationMICHELLE(Calibration):
         # Return a list of the calibrations applicable to this MICHELLE dataset
         self.applicable = []
 
+        if self.descriptors['observation_type'] == 'BPM':
+            return
+
         # Science Imaging OBJECTs require a DARK
         if (self.descriptors['observation_type'] == 'OBJECT' and
                 self.descriptors['spectroscopy'] == False and

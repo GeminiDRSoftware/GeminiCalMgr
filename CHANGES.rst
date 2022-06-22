@@ -1,6 +1,16 @@
 1.1.12
 ======
 
+calrequestlib
+^^^^^^^^^^^^^
+
+- building composite detector_binning field so we can query it against the parsed Header field of same name
+
+calibration_*
+^^^^^^^^^^^^^
+
+- removing all applicables for bpms
+
 calibration_f2
 ^^^^^^^^^^^^^^
 

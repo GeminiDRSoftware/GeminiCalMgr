@@ -23,6 +23,9 @@ class CalibrationGSAOI(Calibration):
         # Return a list of the calibrations applicable to this GSAOI dataset
         self.applicable = []
 
+        if self.descriptors['observation_type'] == 'BPM':
+            return
+
         # Science OBJECTs require DomeFlats and photometric_standards
         if self.descriptors['observation_type'] == 'OBJECT' and self.descriptors['observation_class'] == 'science':
             self.applicable.append('domeflat')

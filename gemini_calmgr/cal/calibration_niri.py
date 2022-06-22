@@ -42,6 +42,9 @@ class CalibrationNIRI(Calibration):
         # Return a list of the calibrations applicable to this NIRI dataset
         self.applicable = []
 
+        if self.descriptors['observation_type'] == 'BPM':
+            return
+
         # Science Imaging OBJECTs require a DARK and FLAT, and photometric_standard
         if (self.descriptors['observation_type'] == 'OBJECT' and
                 self.descriptors['spectroscopy'] == False):

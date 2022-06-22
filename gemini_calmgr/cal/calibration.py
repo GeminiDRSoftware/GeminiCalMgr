@@ -594,7 +594,8 @@ class Calibration(object):
                 'reduction':            self.header.reduction,
                 'elevation':            self.header.elevation,
                 'cass_rotator_pa':      self.header.cass_rotator_pa,
-                'gcal_lamp':            self.header.gcal_lamp
+                'gcal_lamp':            self.header.gcal_lamp,
+                'detector_binning':     self.header.detector_binning,
                 }
 
             iC = self.instrClass

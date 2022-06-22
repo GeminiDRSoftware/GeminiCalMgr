@@ -29,6 +29,9 @@ class CalibrationGPI(Calibration):
         """
         self.applicable = []
 
+        if self.descriptors['observation_type'] == 'BPM':
+            return
+
         # Science OBJECTs require: dark, telluric_standard, astrometric_standard
         if ((self.descriptors['observation_type'] == 'OBJECT') and
                 (self.descriptors['spectroscopy'] == True) and

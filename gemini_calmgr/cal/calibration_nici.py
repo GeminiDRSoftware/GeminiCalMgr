@@ -24,6 +24,9 @@ class CalibrationNICI(Calibration):
         # Return a list of the calibrations applicable to this NICI dataset
         self.applicable = []
 
+        if self.descriptors['observation_type'] == 'BPM':
+            return
+
         # Science OBJECTs require a DARK and FLAT
         if (self.descriptors['observation_type'] == 'OBJECT' and self.descriptors['observation_class'] == 'science'):
             self.applicable.append('dark')

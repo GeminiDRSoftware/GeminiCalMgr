@@ -67,7 +67,7 @@ class CalibrationGHOST(Calibration):
         if self.descriptors:
 
             # MASK files do not require anything,
-            if self.descriptors['observation_type'] == 'MASK':
+            if self.descriptors['observation_type'] in ('MASK', 'BPM'):
                 return
 
             # PROCESSED_SCIENCE files do not require anything
