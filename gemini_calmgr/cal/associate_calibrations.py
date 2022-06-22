@@ -165,5 +165,9 @@ def associate_cals_from_cache(session, headers, caltype="all", recurse_level=0, 
             if (cal.id if not full_query else cal[0].id) not in ids:
                 calheaders.append(cal)
 
-    return calheaders
+    def sort_cal_fn(a):
+        return "BPM" if a is not None and len(a) > 0 and a[0].observation_type == "BPM" else "X"
 
+    calheaders.sort(key=sort_cal_fn)
+
+    return calheaders

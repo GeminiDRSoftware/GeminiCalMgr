@@ -1,6 +1,11 @@
 1.1.12
 ======
 
+associate_calibrations
+^^^^^^^^^^^^^^^^^^^^^^
+
+- do final sort to bubble up any BPMs to the top of the list
+
 debugging
 ^^^^^^^^^
 
