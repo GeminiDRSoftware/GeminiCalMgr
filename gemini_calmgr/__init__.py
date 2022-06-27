@@ -1,4 +1,4 @@
-__version__ = '1.1.13'
+__version__ = '1.1.x'
 
 
 _all__ = ["gemini_metadata_utils",]
