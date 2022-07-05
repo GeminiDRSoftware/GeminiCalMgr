@@ -234,7 +234,6 @@ class CalibrationGNIRS(Calibration):
                 .add_filters(Header.gcal_lamp == 'IRhigh')
                 # Absolute time separation must be within 3 months
                 .max_interval(days=90)
-                .all(howmany, extra_order_terms=[desc(Header.observation_id == self.descriptors['observation_id'])])
             )
         if return_query:
             return query.all(howmany, extra_order_terms=[desc(Header.observation_id
