@@ -318,7 +318,7 @@ class CalibrationGHOST(Calibration):
         if self.descriptors['detector_roi_setting'] in ['Full Frame', 'Central Spectrum']:
             filters.append(Ghost.amp_read_area == self.descriptors['amp_read_area'])
         elif self.descriptors['amp_read_area'] is not None:
-            filters.append(Ghost.amp_read_area.contains(self.descriptors['amp_read_area']))
+            filters.append(Ghost.amp_read_area.like(f"%{self.descriptors['amp_read_area']}%"))
 
         # The Overscan section handling: this only applies to processed biases
         # as raw biases will never be overscan trimmed or subtracted, and if they're
