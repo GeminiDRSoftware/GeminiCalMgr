@@ -594,7 +594,8 @@ class Calibration(object):
                 'reduction':            self.header.reduction,
                 'elevation':            self.header.elevation,
                 'cass_rotator_pa':      self.header.cass_rotator_pa,
-                'gcal_lamp':            self.header.gcal_lamp
+                'gcal_lamp':            self.header.gcal_lamp,
+                'detector_binning':     self.header.detector_binning,
                 }
 
             iC = self.instrClass
@@ -612,11 +613,12 @@ class Calibration(object):
         # Here, we patch in any needed aliases for descriptors that have changed their names.  This is
         # needed when the DB field name no longer matches an updated descriptor name.  For now, this is
         # for shuffle_pixels which is the new name for nod_pixels, but the databases all have nod_pixels
-        updater = {}
-        for k, v in self.descriptors.items():
-            if k in _remappings and _remappings[k] not in self.descriptors:
-                updater[_remappings[k]] = v
-        self.descriptors.update(updater)
+        if self.descriptors is not None:
+            updater = {}
+            for k, v in self.descriptors.items():
+                if k in _remappings and _remappings[k] not in self.descriptors:
+                    updater[_remappings[k]] = v
+            self.descriptors.update(updater)
 
         # Set the list of applicable calibrations
         self.set_applicable()

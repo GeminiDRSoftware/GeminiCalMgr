@@ -1,3 +1,38 @@
+1.1.12
+======
+
+calrequestlib
+^^^^^^^^^^^^^
+
+- building composite detector_binning field so we can query it against the parsed Header field of same name
+
+calibration_*
+^^^^^^^^^^^^^
+
+- removing all applicables for bpms
+
+calibration_f2
+^^^^^^^^^^^^^^
+
+- read_mode not needed to match for arcs and flats (checked with Joan)
+
+associate_calibrations
+^^^^^^^^^^^^^^^^^^^^^^
+
+- do final sort to bubble up any BPMs to the top of the list
+
+debugging
+^^^^^^^^^
+
+- improved support for Group query elements
+
+calibration_x
+^^^^^^^^^^^^^
+
+- support for all instruments for calibration debugging
+- support for BPMs
+
+
 1.1.5
 =====
 

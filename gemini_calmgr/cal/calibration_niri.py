@@ -42,6 +42,9 @@ class CalibrationNIRI(Calibration):
         # Return a list of the calibrations applicable to this NIRI dataset
         self.applicable = []
 
+        if self.descriptors['observation_type'] == 'BPM':
+            return
+
         # Science Imaging OBJECTs require a DARK and FLAT, and photometric_standard
         if (self.descriptors['observation_type'] == 'OBJECT' and
                 self.descriptors['spectroscopy'] == False):
@@ -71,6 +74,39 @@ class CalibrationNIRI(Calibration):
             if self.descriptors['observation_class'] == 'science':
                 self.applicable.append('telluric_standard')
                 self.applicable.append('processed_flat')
+
+        self.applicable.append('processed_bpm')
+
+    def bpm(self, processed=False, howmany=None, return_query=False):
+        """
+        This method identifies the best BPM to use for the target
+        dataset.
+
+        This will match on bpms for the same instrument
+
+        Parameters
+        ----------
+
+        howmany : int, default 1
+            How many matches to return
+
+        Returns
+        -------
+            list of :class:`fits_storage.orm.header.Header` records that match the criteria
+        """
+        # Default 1 bpm
+        howmany = howmany if howmany else 1
+
+        filters = [Header.ut_datetime <= self.descriptors['ut_datetime'],]
+        query = self.get_query(include_engineering=True) \
+                    .bpm(processed) \
+                    .add_filters(*filters) \
+                    .match_descriptors(Header.instrument, Header.detector_binning)
+
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
     def dark(self, processed=False, howmany=None, return_query=False):
         """
@@ -198,7 +234,7 @@ class CalibrationNIRI(Calibration):
             return query.all(howmany)
 
     @not_processed
-    def lampoff_flat(self, processed=False, howmany=None):
+    def lampoff_flat(self, processed=False, howmany=None, return_query=False):
         """
          Method to find the lamp off flats
 
@@ -222,7 +258,7 @@ class CalibrationNIRI(Calibration):
         # Default number to associate
         howmany = howmany if howmany else 10
 
-        return (
+        query = (
             self.get_query()
                 .flat()
                 .add_filters(Header.gcal_lamp == 'Off')
@@ -233,11 +269,14 @@ class CalibrationNIRI(Calibration):
                                    Niri.disperser)
                 # Absolute time separation must be within 1 hour of the lamp on flats
                 .max_interval(seconds=3600)
-                .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
     @not_processed
-    def photometric_standard(self, processed=False, howmany=None):
+    def photometric_standard(self, processed=False, howmany=None, return_query=False):
         """
          Method to find the photometric standards
 
@@ -262,7 +301,7 @@ class CalibrationNIRI(Calibration):
         # Default number to associate
         howmany = howmany if howmany else 10
 
-        return (
+        query = (
             self.get_query()
                 # Phot standards are OBJECT imaging frames
                 .raw().OBJECT().spectroscopy(False)
@@ -272,11 +311,14 @@ class CalibrationNIRI(Calibration):
                                    Niri.camera)
                 # Absolute time separation must be within 24 hours of the science
                 .max_interval(days=1)
-                .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
     @not_processed
-    def telluric_standard(self, processed=False, howmany=None):
+    def telluric_standard(self, processed=False, howmany=None, return_query=False):
         """
          Method to find the telluric standards
 
@@ -300,7 +342,7 @@ class CalibrationNIRI(Calibration):
         # Default number to associate
         howmany = howmany if howmany else 10
 
-        return (
+        query = (
             self.get_query()
                 # Telluric standards are OBJECT spectroscopy partnerCal frames
                 .telluric_standard(OBJECT=True, partnerCal=True)
@@ -311,5 +353,8 @@ class CalibrationNIRI(Calibration):
                 .tolerance(central_wavelength = 0.001)
                 # Absolute time separation must be within 24 hours of the science
                 .max_interval(days=1)
-                .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)

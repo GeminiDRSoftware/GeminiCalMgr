@@ -27,6 +27,9 @@ class CalibrationNIFS(Calibration):
         # Return a list of the calibrations applicable to this NIFS dataset
         self.applicable = []
 
+        if self.descriptors['observation_type'] == 'BPM':
+            return
+
         # Science Imaging OBJECTs require a DARK
         if (self.descriptors['observation_type'] == 'OBJECT' and
                 self.descriptors['spectroscopy'] == False and
@@ -47,11 +50,44 @@ class CalibrationNIFS(Calibration):
         if self.descriptors['observation_type'] == 'FLAT' and self.descriptors['gcal_lamp'] != 'Off':
             self.applicable.append('lampoff_flat')
 
+        self.applicable.append('processed_bpm')
+
     @staticmethod
     def common_descriptors():
-        return (Header.central_wavelength, Nifs.disperser, Nifs.focal_plane_mask, Nifs.filter_name)
+        return (Nifs.disperser, Nifs.focal_plane_mask, Nifs.filter_name)
 
-    def dark(self, processed=False, howmany=None):
+    def bpm(self, processed=False, howmany=None, return_query=False):
+        """
+        This method identifies the best BPM to use for the target
+        dataset.
+
+        This will match on bpms for the same instrument
+
+        Parameters
+        ----------
+
+        howmany : int, default 1
+            How many matches to return
+
+        Returns
+        -------
+            list of :class:`fits_storage.orm.header.Header` records that match the criteria
+        """
+        # Default 1 bpm
+        howmany = howmany if howmany else 1
+
+        filters = [Header.ut_datetime <= self.descriptors['ut_datetime'],]
+        query = self.get_query(include_engineering=True) \
+                    .bpm(processed) \
+                    .add_filters(*filters) \
+                    .match_descriptors(Header.instrument, Header.detector_binning)
+
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
+
+    def dark(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal NIFS Dark for this target frame
 
@@ -73,19 +109,19 @@ class CalibrationNIFS(Calibration):
         if howmany is None:
             howmany = 1 if processed else 10
 
-        return (
-            self.get_query()
-                .dark(processed)
+        query =self.get_query() \
+                .dark(processed) \
                 .match_descriptors(Header.exposure_time,
                                    Nifs.read_mode,
                                    Header.coadds,
-                                   Nifs.disperser)
-                # Absolute time separation must be within 3 months
+                                   Nifs.disperser) \
                 .max_interval(days=90)
-                .all(howmany)
-            )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
-    def flat(self, processed=False, howmany=None):
+    def flat(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal NIFS Flat for this target frame
 
@@ -107,19 +143,20 @@ class CalibrationNIFS(Calibration):
         if howmany is None:
             howmany = 1 if processed else 10
 
-        return (
-            self.get_query()
-                .flat(processed)
-                # GCAL lamp must be IRhigh or QH
-                .add_filters(or_(Header.gcal_lamp == 'IRhigh', Header.gcal_lamp.like('QH%')))
-                # NIFS flats are always taken in short / high readmode. Don't match against readmode (inst sci Email 2013-03-13)
-                .match_descriptors(*CalibrationNIFS.common_descriptors())
-                # Absolute time separation must be within 10 days
-                .max_interval(days=10)
-                .all(howmany)
-            )
+        # GCAL lamp must be IRhigh or QH
+        # NIFS flats are always taken in short / high readmode. Don't match against readmode (inst sci Email 2013-03-13)
+        query = self.get_query() \
+                .flat(processed) \
+                .add_filters(or_(Header.gcal_lamp == 'IRhigh', Header.gcal_lamp.like('QH%'))) \
+                .match_descriptors(*CalibrationNIFS.common_descriptors()) \
+                .tolerance(central_wavelength=0.001) \
+            .max_interval(days=10)
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
-    def lampoff_flat(self, howmany=None):
+    def lampoff_flat(self, howmany=None, return_query=False):
         """
         Find the optimal NIFS Lamp-off Flat for this target frame
 
@@ -141,19 +178,20 @@ class CalibrationNIFS(Calibration):
         # Default number of processed flats to associate
         howmany = howmany if howmany else 10
 
-        return (
-            self.get_query()
-                .flat()
-                # GCAL lamp must be IRhigh or QH
-                .add_filters(Header.gcal_lamp == 'Off')
-                # NIFS flats are always taken in short / high readmode. Don't match against readmode (inst sci Email 2013-03-13)
-                .match_descriptors(*CalibrationNIFS.common_descriptors())
-                # Absolute time separation must be within 1 hour
-                .max_interval(seconds=3600)
-                .all(howmany)
-            )
+        # GCAL lamp must be IRhigh or QH
+        # NIFS flats are always taken in short / high readmode. Don't match against readmode (inst sci Email 2013-03-13)
+        query = self.get_query() \
+                .flat() \
+                .add_filters(Header.gcal_lamp == 'Off') \
+                .match_descriptors(*CalibrationNIFS.common_descriptors()) \
+            .tolerance(central_wavelength=0.001) \
+            .max_interval(seconds=3600)
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
-    def arc(self, howmany=None):
+    def arc(self, howmany=None, return_query=False):
         """
         Find the optimal NIFS Arc for this target frame
 
@@ -175,16 +213,17 @@ class CalibrationNIFS(Calibration):
         # Always associate 1 arc by default
         howmany = howmany if howmany else 1
 
-        return (
-            self.get_query()
-                .arc()
-                .match_descriptors(*CalibrationNIFS.common_descriptors())
-                # Absolute time separation must be within 1 year
-                .max_interval(days=365)
-                .all(howmany)
-            )
+        query = self.get_query() \
+                .arc() \
+                .match_descriptors(*CalibrationNIFS.common_descriptors()) \
+            .tolerance(central_wavelength=0.001) \
+            .max_interval(days=365)
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
-    def ronchi_mask(self, processed=False, howmany=None):
+    def ronchi_mask(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal NIFS Ronchi Mask for this target frame
 
@@ -206,16 +245,16 @@ class CalibrationNIFS(Calibration):
         # Always associate 1 ronchi by default
         howmany = howmany if howmany else 1
 
-        return (
-            self.get_query()
-                .observation_type('RONCHI')
+        query = self.get_query() \
+                .observation_type('RONCHI') \
                 .match_descriptors(Header.central_wavelength,
                                    Nifs.disperser)
-                # NOTE: No max interval?
-                .all(howmany)
-            )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
-    def telluric_standard(self, processed=False, howmany=None):
+    def telluric_standard(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal NIFS Telluric Standards for this target frame
 
@@ -237,12 +276,13 @@ class CalibrationNIFS(Calibration):
         if howmany is None:
             howmany = 1 if processed else 12
 
-        return (
-            self.get_query()
-                # Telluric standards are OBJECT spectroscopy partnerCal frames
-                .telluric_standard(OBJECT=True, partnerCal=True)
-                .match_descriptors(*CalibrationNIFS.common_descriptors())
-                # Absolute time separation must be within 1 day
-                .max_interval(days=1)
-                .all(howmany)
-            )
+        # Telluric standards are OBJECT spectroscopy partnerCal frames
+        query = self.get_query() \
+                .telluric_standard(OBJECT=True, partnerCal=True) \
+                .match_descriptors(*CalibrationNIFS.common_descriptors()) \
+            .tolerance(central_wavelength=0.001) \
+            .max_interval(days=1)
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
