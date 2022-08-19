@@ -1,12 +1,15 @@
 """
 This module holds the CalibrationGNIRS class
 """
+from itertools import chain
+
 from gemini_obs_db.orm.diskfile import DiskFile
 from gemini_obs_db.orm.header import Header
 from gemini_obs_db.orm.gnirs import Gnirs
 from .calibration import Calibration, not_processed
 
 from sqlalchemy import or_, desc
+
 
 class CalibrationGNIRS(Calibration):
     """
@@ -51,16 +54,14 @@ class CalibrationGNIRS(Calibration):
                 self.applicable.append('arc')
             # GNIRS spectroscopy flats are a little complex
             if self.descriptors['disperser'] and 'XD' in self.descriptors['disperser']:
-                # If they are XD, they need an IR flat, a Quartz-Halogen flat (qh_flat) and pinhole.
+                # If they are XD, they need an IR flat, a Quartz-Halogen flat and pinhole.
+                # the flat recipe for XD will be smart about IR and QH flats
                 self.applicable.append('flat')
-                self.applicable.append('qh_flat')
                 self.applicable.append('pinhole_mask')
             else:
                 # non-XD, Long Camera ranges
                 if 'Short' in self.descriptors['camera']:
-                    if self.descriptors['central_wavelength'] < 1.8:
-                        self.applicable.append('qh_flat')
-                    elif self.descriptors['central_wavelength'] < 2.7:
+                    if self.descriptors['central_wavelength'] < 2.7:
                         self.applicable.append('flat')
                     else:
                         self.applicable.append('lampoff_flat')
@@ -74,9 +75,7 @@ class CalibrationGNIRS(Calibration):
 
                 elif 'Long' in self.descriptors['camera']:
                     # non-XD, long camera, 10/mm and 111/mm grating
-                    if self.descriptors['central_wavelength'] < 1.8:
-                        self.applicable.append('qh_flat')
-                    elif self.descriptors['central_wavelength'] < 4.3:
+                    if self.descriptors['central_wavelength'] < 4.3:
                         self.applicable.append('flat')
                     else:
                         self.applicable.append('lampoff_flat')
@@ -198,7 +197,10 @@ class CalibrationGNIRS(Calibration):
         This will find GNIRS flats with a matching disperser, focal plane mask, camera, filter name,
         and well depth setting.  It also matches the central wavelength within 0.001 microns.
 
-        Finally, it matches gcal_lamp of IRhigh and within 90 days.
+        Finally, it matches gcal_lamp of IRhigh or QH* and within 90 days.
+
+        For XD flat queries, we interleave the IRhigh and QH flats to ensure that some of each
+        are returned.
 
         Parameters
         ----------
@@ -212,6 +214,8 @@ class CalibrationGNIRS(Calibration):
         -------
             list of :class:`fits_storage.orm.header.Header` records that match the criteria
         """
+        # General flat notes for GNIRS:
+        #
         # GNIRS mostly uses GCAL flats with the IRhigh lamp.
         # Sometimes, eg thermal wavelengths, it just uses GCAL with the lamp off (shutter closed),
         # and the thermal background of gcal is adequate.
@@ -223,24 +227,63 @@ class CalibrationGNIRS(Calibration):
         # We also have lamp-off flats directly applicable to the science at thermal wavelengths.
         # and we consider QH flats a separate thing.
         #
-        # We prioritize flats that have the same observation ID as the science, but don't *require* this
+        # This call:
+        #
+        # This matching handles QH flats for XD data by interleaving them with the IRhigh flats.  For non-XD
+        # data it will match against both QH and IRhigh flats equally.
+        #
+        # We prioritize flats that have the same observation ID as the science, but don't *require* this.
+        # If we are interleaving QH/IR flats then that takes precedence and the observation ID preference
+        # happens only within each lamp type.
 
         if howmany is None:
             howmany = 1 if processed else 10
 
-        query = (
-            self.get_gnirs_flat_query(processed)
-                # Lamp selection (see comments above)
-                .add_filters(Header.gcal_lamp == 'IRhigh')
-                # Absolute time separation must be within 3 months
+        base_query =  self.get_gnirs_flat_query(processed)
+
+        if self.descriptors['disperser'] and 'XD' in self.descriptors['disperser']:
+            # need QH interleaved with IRHigh
+
+            # We build queries for each IRHigh and QH* lamps.  We order each by observation_id, as
+            # is done for the normal query.  But we interleave the results as IR/QH out to the
+            # requested number so we try to get enough of each.
+            #
+            # For debugging, we just need both gcal_lamp values in one query so we return that
+            # for debug purposes
+
+            ir_query = base_query.add_filters(Header.gcal_lamp == 'IRhigh').max_interval(days=90)
+            base_query = self.get_gnirs_flat_query(processed)
+            qh_query = base_query.add_filters(Header.gcal_lamp.like('QH%')).max_interval(days=90)
+            base_query = self.get_gnirs_flat_query(processed)
+            debug_query = base_query.add_filters(or_(Header.gcal_lamp == 'IRhigh', Header.gcal_lamp.like('QH%')))\
                 .max_interval(days=90)
-            )
-        if return_query:
-            return query.all(howmany, extra_order_terms=[desc(Header.observation_id
-                                                              == self.descriptors['observation_id'])]), query
+
+            ir_all = ir_query.all(howmany, extra_order_terms=[desc(Header.observation_id
+                                                                   == self.descriptors['observation_id'])])
+            qh_all = qh_query.all(howmany, extra_order_terms=[desc(Header.observation_id
+                                                                   == self.descriptors['observation_id'])])
+
+            # do the interleaving, make lists equal size first, then filter out None during the weave
+            if len(ir_all) < len(qh_all):
+                ir_all.extend([None] * (len(qh_all)-len(ir_all)))
+            if len(qh_all) < len(ir_all):
+                qh_all.extend([None] * (len(ir_all)-len(qh_all)))
+            retval = [x for x in chain(*zip(ir_all, qh_all)) if x is not None][:howmany]
+            if return_query:
+                return retval, debug_query
+            else:
+                return retval
         else:
-            return query.all(howmany, extra_order_terms=[desc(Header.observation_id
-                                                              == self.descriptors['observation_id'])])
+            query = base_query.add_filters(or_(Header.gcal_lamp == 'IRhigh', Header.gcal_lamp.like('QH%'))) \
+                .max_interval(days=90)
+            # just filter on both, non-XD data
+
+            if return_query:
+                return query.all(howmany, extra_order_terms=[desc(Header.observation_id
+                                                                  == self.descriptors['observation_id'])]), query
+            else:
+                return query.all(howmany, extra_order_terms=[desc(Header.observation_id
+                                                                  == self.descriptors['observation_id'])])
 
     def arc(self, processed=False, howmany=None, return_query=False):
         """
@@ -355,51 +398,6 @@ class CalibrationGNIRS(Calibration):
             return query.all(howmany, extra_order_terms=[desc(Header.observation_id
                                                               == self.descriptors['observation_id'])])
 
-    def qh_flat(self, processed=False, howmany=None, return_query=False):
-        """
-        Find the optimal GNIRS QH flat field for this target frame
-
-        This will find GNIRS flats with a gcal_lamp of 'QH'.  It looks for a matching disperser, focal plane mask,
-        camera, filter name, and well depth setting.  It also matches the central wavelength within 0.001 microns.
-        It matches within 90 days.
-
-        Parameters
-        ----------
-
-        processed : bool
-            Indicate if we want to retrieve processed or raw QH flats
-        howmany : int, default 1 if processed else 10
-            How many matches to return
-
-        Returns
-        -------
-            list of :class:`fits_storage.orm.header.Header` records that match the criteria
-        """
-        # GNIRS mostly uses GCAL flats with the IRhigh lamp.
-        # Sometimes, eg thermal wavelengths, it just uses GCAL with the lamp off (shutter closed),
-        # and the thermal background of gcal is adequate.
-        # But also it sometimes (eg some imaging) uses a lamp-on flat and wants to substract a lamp-off flat
-        # And then also in XD modes, it also wants a QH lamp flat for the shorter wavelengths.
-        #
-        # So, this cal association will give you either IRhigh flats or lamp-Off flats. In some cases, we make
-        # a lamp-off flat applicable to the lamp-on flat to give the subtraciton pairs. 
-        # and we consider QH flats a separate thing.
-        if howmany is None:
-            howmany = 1 if processed else 10
-
-        query = (
-            self.get_gnirs_flat_query(processed) # QH flats are just flats...
-                # ... with QH GCAL lamp
-                .add_filters(Header.gcal_lamp.like('QH%'))
-                # Absolute time separation must be within 3 months
-                .max_interval(days=90)
-            )
-        if return_query:
-            return query.all(howmany, extra_order_terms=[desc(Header.observation_id
-                                                              == self.descriptors['observation_id'])]), query
-        else:
-            return query.all(howmany, extra_order_terms=[desc(Header.observation_id
-                                                              == self.descriptors['observation_id'])])
 
     def telluric_standard(self, processed=False, howmany=None, return_query=False):
         """
