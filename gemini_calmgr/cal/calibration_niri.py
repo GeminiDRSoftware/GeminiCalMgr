@@ -175,10 +175,18 @@ class CalibrationNIRI(Calibration):
         # GCAL lamp should be on - these flats will then require lamp-off flats to calibrate them
         # Must totally match: data_section, well_depth_setting, filter_name, camera, focal_plane_mask, disperser
         # Update from AS 20130320 - read mode should not be required to match, but well depth should.
+        #
+        # for M grism, we do accept gcal_lamp of Off as a flat
+        if self.descriptors['disperser'] == 'Mgrism':
+            lamp_filters = [Header.gcal_lamp == 'IRhigh', Header.gcal_lamp == 'IRlow', Header.gcal_lamp.like('QH%'),
+                            Header.gcal_lamp == 'Off']
+        else:
+            lamp_filters = [Header.gcal_lamp == 'IRhigh', Header.gcal_lamp == 'IRlow', Header.gcal_lamp.like('QH%')]
+
         query = \
             self.get_query() \
                 .flat(processed) \
-                .add_filters(or_(Header.gcal_lamp == 'IRhigh', Header.gcal_lamp == 'IRlow', Header.gcal_lamp.like('QH%'))) \
+                .add_filters(or_(*lamp_filters)) \
                 .add_filters(Niri.data_section == self._parse_section(self.descriptors['data_section'])) \
                 .match_descriptors(Niri.well_depth_setting,
                                    Niri.filter_name,
@@ -267,8 +275,8 @@ class CalibrationNIRI(Calibration):
                                    Niri.filter_name,
                                    Niri.camera,
                                    Niri.disperser)
-                # Absolute time separation must be within 1 hour of the lamp on flats
-                .max_interval(seconds=3600)
+                # Absolute time separation must be within 1 day of the lamp on flats
+                .max_interval(days=1)  # changed from 1 hr per KL
             )
         if return_query:
             return query.all(howmany), query
