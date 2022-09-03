@@ -274,9 +274,13 @@ class CalibrationGNIRS(Calibration):
             else:
                 return retval
         else:
-            query = base_query.add_filters(or_(Header.gcal_lamp == 'IRhigh', Header.gcal_lamp.like('QH%'))) \
+            # just filter on both, this is non-XD data, plus lampoff if appropriate
+            if self.descriptors['central_wavelength'] and self.descriptors['central_wavelength'] >= 4.25:
+                lampfilters = [Header.gcal_lamp == 'IRhigh', Header.gcal_lamp.like('QH%'), Header.gcal_lamp == 'Off']
+            else:
+                lampfilters = [Header.gcal_lamp == 'IRhigh', Header.gcal_lamp.like('QH%')]
+            query = base_query.add_filters(or_(*lampfilters)) \
                 .max_interval(days=90)
-            # just filter on both, non-XD data
 
             if return_query:
                 return query.all(howmany, extra_order_terms=[desc(Header.observation_id
