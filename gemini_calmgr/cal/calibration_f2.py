@@ -71,6 +71,9 @@ class CalibrationF2(Calibration):
             self.applicable.append('flat')
             self.applicable.append('processed_flat')
 
+        if self.descriptors['observation_type'] == 'ARC' and self.descriptors['filter_name'] in ['HK', 'K-long']:
+            self.applicable.append('lampoff_flat')
+
         self.applicable.append('processed_bpm')
 
     def dark(self, processed=False, howmany=None, return_query=False):
@@ -203,6 +206,42 @@ class CalibrationF2(Calibration):
                     .add_filters(*filters) \
                     .match_descriptors(Header.instrument, Header.detector_binning)
 
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
+
+    @not_processed
+    def lampoff_flat(self, processed=False, howmany=None, return_query=False):
+        """
+        Get matching lamp-off flats for an F2 observation.
+
+        Parameters
+        ----------
+
+        processed : bool
+            Query for processed flats, or not
+
+        howmany : int, defaults to `None`
+            How many results to return, or all if `None`
+
+        Returns
+        -------
+        :class:`sqlalchemy.orm.query.Query` for flats matching the F2 read_mode and the :meth:`fits_storage.cal.calibration_f2.CalibrationF2.common_descriptors` within 90 days.  Also within 0.001 wavelength for spectroscopy
+        """
+        if howmany is None:
+            howmany = 1 if processed else 10
+
+        query = (
+            self.get_query()
+                .flat(processed=processed)
+                # Must totally match: disperser, central_wavelength (spect only), focal_plane_mask, filter_name, lyot_stop, read_mode
+                .match_descriptors(*CalibrationF2.common_descriptors(), Header.exposure_time)
+                .add_filters(Header.gcal_lamp == 'Off')
+                .tolerance(central_wavelength=0.001, condition=self.descriptors['spectroscopy'])
+                # Absolute time separation must be within 3 months
+                .max_interval(days=1)
+            )
         if return_query:
             return query.all(howmany), query
         else:
