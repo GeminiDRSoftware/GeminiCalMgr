@@ -162,4 +162,4 @@ def get_calibration_type(obj):
         return add_processed('standard', types)
     if 'SLITILLUM' in types:
         return add_processed('slitillum', types)
-    return None
+    return None, None

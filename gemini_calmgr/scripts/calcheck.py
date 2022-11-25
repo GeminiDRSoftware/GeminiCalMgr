@@ -107,18 +107,10 @@ REQUIRED_TAG_DICT["__dummy__"] = []
 
 
 def why_not_matching(filename, processed, cal_type, calibration):
-    try:
-        filead = astrodata.open(filename)
-    except Exception as ex:
-        logging.error(f"Unable to open {filename} with DRAGONS")
-        exit(1)
-    try:
-        calad = astrodata.open(calibration)
-        if cal_type == "auto":
-            processed, cal_type = get_calibration_type(calad)
-    except:
-        logging.error(f"Unable to open {calibration} with DRAGONS")
-        exit(2)
+    filead = astrodata.open(filename)
+    calad = astrodata.open(calibration)
+    if cal_type == "auto":
+        processed, cal_type = get_calibration_type(calad)
     try:
         mgr = LocalManager(":memory:")
         mgr.init_database(wipe=True)
