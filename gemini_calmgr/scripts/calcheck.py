@@ -109,6 +109,14 @@ REQUIRED_TAG_DICT["__dummy__"] = []
 def why_not_matching(filename, processed, cal_type, calibration):
     filead = astrodata.open(filename)
     calad = astrodata.open(calibration)
+
+    if filead.ut_datetime() is None:
+        print("NO UT in file!")
+        exit(1)
+    if calad.ut_datetime() is None:
+        print("NO UT in cal!")
+        exit(2)
+
     if cal_type == "auto":
         processed, cal_type = get_calibration_type(calad)
     try:
@@ -140,7 +148,7 @@ def why_not_matching(filename, processed, cal_type, calibration):
 
         # Obtain a list of calibrations and check if we matched
         args["return_query"] = True
-        if processed:
+        if processed and "processed" not in method:
             args["processed"] = True
 
         if not hasattr(cal_obj, method):
@@ -195,7 +203,7 @@ if __name__ == "__main__":
     cal_type = sys.argv[2]
     if cal_type.startswith('processed_'):
         processed = True
-        cal_type = cal_type[10:]
+        # cal_type = cal_type[10:]
     else:
         processed = False
     calibration = sys.argv[3]
