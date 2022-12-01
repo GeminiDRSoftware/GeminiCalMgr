@@ -58,11 +58,11 @@ class CalibrationGHOST(Calibration):
         super(CalibrationGHOST, self).__init__(session, header, descriptors, *args, **kwargs)
 
         if descriptors is None and self.instrClass is not None:
-            self.descriptors['want_before_arc'] = self.header.want_before_arc
             iC = self.instrClass
             query = session.query(iC).filter(
                 iC.header_id == self.descriptors['header_id'])
             inst = query.first()
+            self.descriptors['want_before_arc'] = inst.want_before_arc
         if header is None:
             # non-DB source of data, so we need to parse out dictionaries
             # if the data came from the header+instrument tables then this was done during ingest and came pre-done
