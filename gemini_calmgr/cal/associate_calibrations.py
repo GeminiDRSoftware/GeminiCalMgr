@@ -97,7 +97,10 @@ def associate_cals(session, headers, caltype="all", recurse_level=0, full_query=
                 shortlist.append(cal)
 
     def sort_cal_fn(a):
-        return "BPM" if a is not None and len(a) > 0 and a[0].observation_type == "BPM" else "X"
+        try:
+            return "BPM" if a is not None and a[0].observation_type == "BPM" else "X"
+        except:
+            return "X"
 
     if recurse_level == 0:
         shortlist.sort(key=sort_cal_fn)

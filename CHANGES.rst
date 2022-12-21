@@ -1,3 +1,12 @@
+1.1.19
+======
+
+calibration_ghost
+^^^^^^^^^^^^^^^^^
+
+- Initial calibration class for GHOST
+
+
 1.1.12
 ======
 

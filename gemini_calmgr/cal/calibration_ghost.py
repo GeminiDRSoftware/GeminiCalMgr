@@ -1,16 +1,32 @@
 """
 This module holds the CalibrationGHOST class
 """
-import datetime
+from sqlalchemy import or_
 
-from gemini_obs_db.orm.diskfile import DiskFile
 from gemini_obs_db.orm.header import Header
-from gemini_obs_db.orm.ghost import Ghost
-from .calibration import Calibration, not_processed, not_imaging, not_spectroscopy
-
-from sqlalchemy.orm import join
+from gemini_obs_db.orm.ghost import Ghost, ArmFieldDispatcher, GHOST_ARMS, GHOST_ARM_DESCRIPTORS
+from gemini_calmgr.cal.calibration import Calibration, not_processed, not_imaging, not_spectroscopy, CalQuery
 
 import math
+
+
+class DictDictFieldDispatcher(ArmFieldDispatcher):
+    def __init__(self, d):
+        super().__init__()
+        self.d = d
+
+    def arm(self):
+        return self.d.get('arm', None)
+
+    def get_field(self, field_name):
+        return self.d.get(field_name, None)
+
+    def set_field(self, field_name, value):
+        self.d[field_name] = value
+
+
+ARM_DESCRIPTORS = [f"{descr}_{arm}" for descr in GHOST_ARM_DESCRIPTORS for arm in GHOST_ARMS]
+
 
 class CalibrationGHOST(Calibration):
     """
@@ -18,7 +34,8 @@ class CalibrationGHOST(Calibration):
     It is a subclass of Calibration
     """
     instrClass = Ghost
-    instrDescriptors = (
+    instrDescriptors = [
+        'arm',
         'disperser',
         'filter_name',
         'focal_plane_mask',
@@ -30,25 +47,27 @@ class CalibrationGHOST(Calibration):
         'res_mode',
         'prepared',
         'overscan_trimmed',
-        'overscan_subtracted'
-        'want_before_arc'
-        )
+        'overscan_subtracted',
+        'want_before_arc',
+        ]
+    instrDescriptors.extend(ARM_DESCRIPTORS)
 
-    def __init__(self, session, *args, **kwargs):
+    def __init__(self, session, header, descriptors, *args, **kwargs):
         # Need to super the parent class __init__ to get want_before_arc
         # keyword in
-        super(CalibrationGHOST, self).__init__(session, *args, **kwargs)
+        super(CalibrationGHOST, self).__init__(session, header, descriptors, *args, **kwargs)
 
-        if self.descriptors is None and self.instrClass is not None:
-            self.descriptors['want_before_arc'] = self.header.want_before_arc
+        if descriptors is None and self.instrClass is not None:
             iC = self.instrClass
             query = session.query(iC).filter(
                 iC.header_id == self.descriptors['header_id'])
             inst = query.first()
-
-            # Populate the descriptors dictionary for the instrument
-            for descr in self.instrDescriptors:
-                self.descriptors[descr] = getattr(inst, descr, None)
+            self.descriptors['want_before_arc'] = inst.want_before_arc
+        if header is None:
+            # non-DB source of data, so we need to parse out dictionaries
+            # if the data came from the header+instrument tables then this was done during ingest and came pre-done
+            dispatcher = DictDictFieldDispatcher(self.descriptors)
+            dispatcher.populate_arm_fields()
 
         # Set the list of applicable calibrations
         self.set_applicable()
@@ -67,7 +86,7 @@ class CalibrationGHOST(Calibration):
         if self.descriptors:
 
             # MASK files do not require anything,
-            if self.descriptors['observation_type'] in ('MASK', 'BPM'):
+            if self.descriptors['observation_type'] == 'MASK':
                 return
 
             # PROCESSED_SCIENCE files do not require anything
@@ -133,8 +152,6 @@ class CalibrationGHOST(Calibration):
             if 'MOS' in self.types:
                 self.applicable.append('mask')
 
-            self.applicable.append('processed_bpm')
-
     @not_imaging
     def arc(self, processed=False, howmany=2, return_query=False):
         """
@@ -196,43 +213,14 @@ class CalibrationGHOST(Calibration):
                 .arc(processed)
                 .add_filters(*filters)
                 .match_descriptors(Header.instrument,
+                                   Header.camera,
                                    Ghost.disperser,
-                                   Ghost.filter_name)
+                                   Ghost.filter_name,
+                                   Ghost.res_mode)
                 .tolerance(central_wavelength=0.001)
                 # Absolute time separation must be within 1 year
                 .max_interval(days=365)
             )
-        if return_query:
-            return query.all(howmany), query
-        else:
-            return query.all(howmany)
-
-    def bpm(self, processed=False, howmany=None, return_query=False):
-        """
-        This method identifies the best BPM to use for the target
-        dataset.
-
-        This will match on bpms for the same instrument
-
-        Parameters
-        ----------
-
-        howmany : int, default 1
-            How many matches to return
-
-        Returns
-        -------
-            list of :class:`fits_storage.orm.header.Header` records that match the criteria
-        """
-        # Default 1 bpm
-        howmany = howmany if howmany else 1
-
-        filters = [Header.ut_datetime <= self.descriptors['ut_datetime'],]
-        query = self.get_query(include_engineering=True) \
-                    .bpm(processed) \
-                    .add_filters(*filters) \
-                    .match_descriptors(Header.instrument, Header.detector_binning)
-
         if return_query:
             return query.all(howmany), query
         else:
@@ -270,6 +258,7 @@ class CalibrationGHOST(Calibration):
                 filters.append(Ghost.amp_read_area.contains(self.descriptors['amp_read_area']))
 
         # Must match exposure time.
+
 
         query = (
             self.get_query()
@@ -318,7 +307,7 @@ class CalibrationGHOST(Calibration):
         if self.descriptors['detector_roi_setting'] in ['Full Frame', 'Central Spectrum']:
             filters.append(Ghost.amp_read_area == self.descriptors['amp_read_area'])
         elif self.descriptors['amp_read_area'] is not None:
-            filters.append(Ghost.amp_read_area.like(f"%{self.descriptors['amp_read_area']}%"))
+            filters.append(Ghost.amp_read_area.contains(self.descriptors['amp_read_area']))
 
         # The Overscan section handling: this only applies to processed biases
         # as raw biases will never be overscan trimmed or subtracted, and if they're
@@ -341,6 +330,7 @@ class CalibrationGHOST(Calibration):
                 .bias(processed)
                 .add_filters(*filters)
                 .match_descriptors(Header.instrument,
+                                   Header.camera,
                                   Ghost.detector_x_bin,
                                   Ghost.detector_y_bin,
                                   Ghost.read_speed_setting,
@@ -353,7 +343,7 @@ class CalibrationGHOST(Calibration):
         else:
             return query.all(howmany)
 
-    def imaging_flat(self, processed, howmany, flat_descr, filt, sf=False):
+    def imaging_flat(self, processed, howmany, flat_descr, filt, sf=False, return_query=False):
         """
         Method to find the best imaging flats for the target dataset
 
@@ -397,15 +387,18 @@ class CalibrationGHOST(Calibration):
             # Imaging flats are twilight flats
             # Twilight flats are dayCal OBJECT frames with target Twilight
             query = self.get_query().raw().dayCal().OBJECT().object('Twilight')
-        return (
+        query = (
             query.add_filters(*filt)
                  .match_descriptors(*flat_descr)
                  # Absolute time separation must be within 6 months
                  .max_interval(days=180)
-                 .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
-    def spectroscopy_flat(self, processed, howmany, flat_descr, filt):
+    def spectroscopy_flat(self, processed, howmany, flat_descr, filt, return_query=False):
         """
         Method to find the best imaging flats for the target dataset
 
@@ -469,7 +462,7 @@ class CalibrationGHOST(Calibration):
             if crpa_thres == 0: under_85 = False
             if el_thres == 0: ifu = mos_or_ls = False
 
-        return (
+        query = (
             self.get_query()
                 .flat(processed)
                 .add_filters(*filt)
@@ -486,8 +479,11 @@ class CalibrationGHOST(Calibration):
 
             # Absolute time separation must be within 6 months
                 .max_interval(days=180)
-                .all(howmany)
             )
+        if return_query:
+            return query.all(howmany), query
+        else:
+            return query.all(howmany)
 
     def flat(self, processed=False, howmany=None, return_query=False):
         """
@@ -518,6 +514,7 @@ class CalibrationGHOST(Calibration):
         # Must totally match instrument, detector_x_bin, detector_y_bin, filter
         flat_descriptors = (
             Header.instrument,
+            Header.camera,
             Ghost.filter_name,
             Ghost.read_speed_setting,
             Ghost.gain_setting,
@@ -528,26 +525,20 @@ class CalibrationGHOST(Calibration):
             Ghost.disperser, # this can be common-mode as imaging is always 'MIRROR'
             )
 
-        # The science amp_read_area must be equal or substring of the cal amp_read_area
-        # If the science frame uses all the amps, then they must be a direct match as all amps must be there
-        # - this is more efficient for the DB as it will use the index. Otherwise, the science frame could
-        # have a subset of the amps thus we must do the substring match
-        if self.descriptors['detector_roi_setting'] in ['Full Frame', 'Central Spectrum']:
-            flat_descriptors = flat_descriptors + (Ghost.amp_read_area,)
-        elif self.descriptors['amp_read_area'] is not None:
-            filters.append(Ghost.amp_read_area.contains(self.descriptors['amp_read_area']))
+        # Not needed for GMOS?!
+        # # The science amp_read_area must be equal or substring of the cal amp_read_area
+        # # If the science frame uses all the amps, then they must be a direct match as all amps must be there
+        # # - this is more efficient for the DB as it will use the index. Otherwise, the science frame could
+        # # have a subset of the amps thus we must do the substring match
+        # if self.descriptors['detector_roi_setting'] in ['Full Frame', 'Central Spectrum']:
+        #     flat_descriptors = flat_descriptors + (Ghost.amp_read_area,)
+        # elif self.descriptors['amp_read_area'] is not None:
+        #     filters.append(Ghost.amp_read_area.contains(self.descriptors['amp_read_area']))
 
         if self.descriptors['spectroscopy']:
-            query = self.spectroscopy_flat(processed, howmany, flat_descriptors, filters)
+            return self.spectroscopy_flat(processed, howmany, flat_descriptors, filters, return_query=return_query)
         else:
-            query = self.imaging_flat(processed, howmany, flat_descriptors, filters)
-
-        # hard to decouple 'howmany' from utilities.
-        # TODO Maybe we can reuse the post .all() in the debug parser without issues?
-        if return_query:
-            return query, query
-        else:
-            return query
+            return self.imaging_flat(processed, howmany, flat_descriptors, filters, return_query=return_query)
 
     def processed_slitflat(self, howmany=None, return_query=False):
         """
@@ -577,7 +568,7 @@ class CalibrationGHOST(Calibration):
             list of :class:`fits_storage.orm.header.Header` records that match the criteria
         """
         if 'SLITV' in self.types:
-            return self.flat(True, howmany)
+            return self.flat(True, howmany, return_query=return_query)
 
         filters = []
         filters.append(Header.spectroscopy == False)
@@ -593,12 +584,8 @@ class CalibrationGHOST(Calibration):
             Ghost.disperser, # this can be common-mode as imaging is always 'MIRROR'
             )
 
-        query = self.imaging_flat(False, howmany, flat_descriptors, filters,
-                                 sf=True)
-        if return_query:
-            return query, query
-        else:
-            return query
+        return self.imaging_flat(False, howmany, flat_descriptors, filters,
+                                 sf=True, return_query=return_query)
 
     def processed_slit(self, howmany=None, return_query=False):
         """
@@ -606,7 +593,7 @@ class CalibrationGHOST(Calibration):
 
         This will find GHOST processed slits with a 'Sony-ICX674' detector.  It matches the observation
         type, res mode, and within 30 seconds.  For 'ARC' observation type it matches
-        'PROCESSED_ARC' data, otherwise it matches 'PREPARED' data.
+        'PROCESSED_UNKNOWN' data, otherwise it matches 'PREPARED' data.
 
         Parameters
         ----------
@@ -625,7 +612,7 @@ class CalibrationGHOST(Calibration):
             )
 
         filters = (
-            Ghost.detector_name.startswith('Sony-ICX674'),
+            Ghost.detector_name.contains('ICX674'),
         )
 
         query = (
@@ -633,7 +620,7 @@ class CalibrationGHOST(Calibration):
                 .reduction(  # this may change pending feedback from Kathleen
                     'PROCESSED_ARC' if
                     self.descriptors['observation_type'] == 'ARC' else
-                    'PROCESSED_UNKNOWN'  # SLIT and SLITFLAT not in core list
+                    'PROCESSED_UNKNOWN'
                 )
                 .spectroscopy(False)
                 .match_descriptors(*descripts)
@@ -646,6 +633,7 @@ class CalibrationGHOST(Calibration):
             return query.all(howmany), query
         else:
             return query.all(howmany)
+
 
     def processed_fringe(self, howmany=None, return_query=False):
         """
@@ -752,6 +740,7 @@ class CalibrationGHOST(Calibration):
             return query.all(howmany), query
         else:
             return query.all(howmany)
+
 
     # We don't handle processed ones (yet)
     @not_processed
@@ -898,3 +887,45 @@ class CalibrationGHOST(Calibration):
             return query.all(howmany), query
         else:
             return query.all(howmany)
+
+    def get_query(self):
+        """
+        Returns an ``CalQuery`` object, populated with the current session,
+        instrument class, descriptors and the setting for full/not-full query.
+
+        """
+        return GHOSTCalQuery(self.session, self.instrClass, self.descriptors, procmode=self.procmode, full_query=self.full_query)
+
+
+class GHOSTCalQuery(CalQuery):
+
+    def match_descriptors(self, *args):
+        """
+        Takes a numbers of expressions (E.g., ``Header.foo``, ``Instrument.bar``),
+        figures out the descriptor to use from the column name, and adds the
+        right filter to the query, replacing boilerplate code like the following:
+        ::
+
+            Header.foo == descriptors['foo']
+            Instrument.bar == descriptors['bar']
+
+        """
+        for arg in args:
+            field = arg.expression.name
+            if field in GHOST_ARM_DESCRIPTORS:
+                if 'arm' not in self.descr or self.descr['arm'] is None:
+                    # need to group match any arm
+                    self.query = self.query.filter(or_(
+                        *[getattr(arg.class_, field + arm) == self.descr[field + arm]
+                          for arm in (f'_{arm}' for arm in GHOST_ARMS)]
+                    ))
+                else:
+                    # need to match arm variant of descriptor
+                    arm = '_' + self.descr['arm']
+                    self.query = self.query.filter(
+                        getattr(arg.class_, field + arm) == self.descr[field + arm]
+                    )
+            else:
+                self.query = self.query.filter(arg == self.descr[field])
+
+        return self

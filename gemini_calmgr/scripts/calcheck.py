@@ -1,3 +1,5 @@
+#! python3
+
 import sys
 import logging
 from os.path import basename
@@ -107,18 +109,18 @@ REQUIRED_TAG_DICT["__dummy__"] = []
 
 
 def why_not_matching(filename, processed, cal_type, calibration):
-    try:
-        filead = astrodata.open(filename)
-    except Exception as ex:
-        logging.error(f"Unable to open {filename} with DRAGONS")
+    filead = astrodata.open(filename)
+    calad = astrodata.open(calibration)
+
+    if filead.ut_datetime() is None:
+        print("NO UT in file!")
         exit(1)
-    try:
-        calad = astrodata.open(calibration)
-        if cal_type == "auto":
-            processed, cal_type = get_calibration_type(calad)
-    except:
-        logging.error(f"Unable to open {calibration} with DRAGONS")
+    if calad.ut_datetime() is None:
+        print("NO UT in cal!")
         exit(2)
+
+    if cal_type == "auto":
+        processed, cal_type = get_calibration_type(calad)
     try:
         mgr = LocalManager(":memory:")
         mgr.init_database(wipe=True)
@@ -148,7 +150,7 @@ def why_not_matching(filename, processed, cal_type, calibration):
 
         # Obtain a list of calibrations and check if we matched
         args["return_query"] = True
-        if processed:
+        if processed and "processed" not in method:
             args["processed"] = True
 
         if not hasattr(cal_obj, method):
@@ -198,12 +200,12 @@ def why_not_matching(filename, processed, cal_type, calibration):
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
-        logging.error("Useage: why_not_matching <filename> <cal_type> <calibrationfilename>")
+        logging.error("Useage: calcheck <filename> <cal_type> <calibrationfilename>")
     filename = sys.argv[1]
     cal_type = sys.argv[2]
     if cal_type.startswith('processed_'):
         processed = True
-        cal_type = cal_type[10:]
+        # cal_type = cal_type[10:]
     else:
         processed = False
     calibration = sys.argv[3]
