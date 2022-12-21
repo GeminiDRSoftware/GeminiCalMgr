@@ -1,3 +1,5 @@
+#! python3
+
 import sys
 import logging
 from os.path import basename
@@ -198,7 +200,7 @@ def why_not_matching(filename, processed, cal_type, calibration):
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
-        logging.error("Useage: why_not_matching <filename> <cal_type> <calibrationfilename>")
+        logging.error("Useage: calcheck <filename> <cal_type> <calibrationfilename>")
     filename = sys.argv[1]
     cal_type = sys.argv[2]
     if cal_type.startswith('processed_'):
