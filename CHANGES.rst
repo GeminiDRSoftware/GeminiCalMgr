@@ -1,3 +1,10 @@
+1.1.20
+
+calibration
+^^^^^^^^^^^
+
+- Include camera descriptor to support GHOST calibration rules
+
 1.1.19
 ======
 

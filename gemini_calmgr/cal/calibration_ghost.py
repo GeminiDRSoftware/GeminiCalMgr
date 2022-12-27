@@ -112,12 +112,13 @@ class CalibrationGHOST(Calibration):
                 self.applicable.append('bias')
                 self.applicable.append('processed_bias')
 
-            # If it (is spectroscopy) and
+            # If it (is spectroscopy) and * Note: tweaked for GHOST to ignore flag, it's basically always spectroscopy
+            # * TBD how/what to change in the AstroDataGhost for DRAGONS master
             # (is an OBJECT) and
             # (is not a Twilight) and
             # (is not a specphot)
             # then it needs an arc, flat, spectwilight, specphot
-            if ((self.descriptors['spectroscopy'] == True) and
+            if (  # (self.descriptors['spectroscopy'] == True) and
                     (self.descriptors['observation_type'] == 'OBJECT') and
                     (self.descriptors['object'] != 'Twilight') and
                     (self.descriptors['observation_class'] not in ['partnerCal', 'progCal'])):
@@ -134,25 +135,27 @@ class CalibrationGHOST(Calibration):
             # (is an OBJECT) and (is not a Twilight) and
             # is not acq or acqcal
             # then it needs flats, processed_fringe
-            if ((self.descriptors['spectroscopy'] == False) and
-                     (self.descriptors['focal_plane_mask'] == 'Imaging') and
-                     (self.descriptors['observation_type'] == 'OBJECT') and
-                     (self.descriptors['object'] != 'Twilight') and
-                     (self.descriptors['observation_class'] not in ['acq', 'acqCal'])):
 
-                self.applicable.append('flat')
-                self.applicable.append('processed_flat')
-                self.applicable.append('processed_fringe')
-                # If it's all that and obsclass science, then it needs a photstd
-                # need to take care that phot_stds don't require phot_stds for recursion
-                if self.descriptors['observation_class'] == 'science':
-                    self.applicable.append('photometric_standard')
+            # * per above, GHOST is always spec
+            # if ((self.descriptors['spectroscopy'] == False) and
+            #          (self.descriptors['focal_plane_mask'] == 'Imaging') and
+            #          (self.descriptors['observation_type'] == 'OBJECT') and
+            #          (self.descriptors['object'] != 'Twilight') and
+            #          (self.descriptors['observation_class'] not in ['acq', 'acqCal'])):
+            #
+            #     self.applicable.append('flat')
+            #     self.applicable.append('processed_flat')
+            #     self.applicable.append('processed_fringe')
+            #     # If it's all that and obsclass science, then it needs a photstd
+            #     # need to take care that phot_stds don't require phot_stds for recursion
+            #     if self.descriptors['observation_class'] == 'science':
+            #         self.applicable.append('photometric_standard')
 
             # If it is MOS then it needs a MASK
             if 'MOS' in self.types:
                 self.applicable.append('mask')
 
-    @not_imaging
+    # @not_imaging
     def arc(self, processed=False, howmany=2, return_query=False):
         """
         This method identifies the best GHOST ARC to use for the target
@@ -448,7 +451,7 @@ class CalibrationGHOST(Calibration):
                 mos_or_ls = self.descriptors['central_wavelength'] > 0.55 or self.descriptors['disperser'].startswith('R150')
                 # For MOS and LS, elevation must we within 15 degrees
                 el_thres = 15.0
-            except AttributeError:
+            except (AttributeError, TypeError):
                 # Just in case disperser is None
                 pass
             under_85 = self.descriptors['elevation'] < 85
@@ -535,7 +538,8 @@ class CalibrationGHOST(Calibration):
         # elif self.descriptors['amp_read_area'] is not None:
         #     filters.append(Ghost.amp_read_area.contains(self.descriptors['amp_read_area']))
 
-        if self.descriptors['spectroscopy']:
+        # as above, GHOST is spect
+        if True:  # self.descriptors['spectroscopy']:
             return self.spectroscopy_flat(processed, howmany, flat_descriptors, filters, return_query=return_query)
         else:
             return self.imaging_flat(processed, howmany, flat_descriptors, filters, return_query=return_query)
@@ -683,7 +687,7 @@ class CalibrationGHOST(Calibration):
 
     # We don't handle processed ones (yet)
     @not_processed
-    @not_imaging
+    # @not_imaging
     def spectwilight(self, processed=False, howmany=None, return_query=False):
         """
         Method to find the best spectwilight - ie spectroscopy twilight
@@ -744,7 +748,7 @@ class CalibrationGHOST(Calibration):
 
     # We don't handle processed ones (yet)
     @not_processed
-    @not_imaging
+    # @not_imaging
     def specphot(self, processed=False, howmany=None, return_query=False):
         """
         Method to find the best specphot observation
@@ -792,7 +796,7 @@ class CalibrationGHOST(Calibration):
         query = (
             self.get_query()
                 # They are OBJECT partnerCal or progCal spectroscopy frames with target not twilight
-                .raw().OBJECT().spectroscopy(True)
+                .raw().OBJECT()  # .spectroscopy(True) * per above, they are all spectroscopy
                 .add_filters(Header.observation_class.in_(['partnerCal', 'progCal']),
                              Header.object != 'Twilight',
                              *filters)
@@ -813,7 +817,7 @@ class CalibrationGHOST(Calibration):
 
     # We don't handle processed ones (yet)
     @not_processed
-    @not_spectroscopy
+    # @not_spectroscopy
     def photometric_standard(self, processed=False, howmany=None, return_query=False):
         """
         Method to find the best phot_std observation
