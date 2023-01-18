@@ -80,10 +80,10 @@ def associate_cals(session, headers, caltype="all", recurse_level=0, full_query=
             calheader = result
         if calheader.id not in ids:
             ids.add(calheader.id)
-            if recurse_level == 0:
-                calheader.is_primary_cal = True
-            else:
-                calheader.is_primary_cal = False
+            # if recurse_level == 0:
+            #     calheader.is_primary_cal = True
+            # else:
+            #     calheader.is_primary_cal = False
             shortlist.append(result)
 
     # Now we have to recurse to find the calibrations for the calibrations...
@@ -167,8 +167,8 @@ def associate_cals_from_cache(session, headers, caltype="all", recurse_level=0, 
     query = query.distinct().order_by(CalCache.caltype).order_by(CalCache.obs_hid).order_by(CalCache.rank)
 
     calheaders = query.all()
-    for cal in calheaders:
-        cal.is_primary_cal = True
+    # for cal in calheaders:
+    #     cal.is_primary_cal = True
     ids = set((calh.id if not full_query else calh[0].id) for calh in calheaders)
 
     # Now we have to recurse to find the calibrations for the calibrations...
@@ -179,7 +179,7 @@ def associate_cals_from_cache(session, headers, caltype="all", recurse_level=0, 
         down_list = (calheaders if not full_query else (x[0] for x in calheaders))
         for cal in associate_cals_from_cache(session, down_list, caltype=caltype, recurse_level=recurse_level + 1, full_query=full_query):
             if (cal.id if not full_query else cal[0].id) not in ids:
-                cal.is_primary_cal = False
+                # cal.is_primary_cal = False
                 calheaders.append(cal)
 
     def sort_cal_fn(a):
