@@ -1,17 +1,21 @@
 # GeminiCalMgr
 
-This project is for the calibration matching logic for Gemini data.  This used to 
-live in the FitsStorage project, but is being broken out as a dependency for 
-DRAGONS and with an eye towards eventually being a public project.
+This project is for the calibration matching logic for Gemini data.  This logic
+is handled via per-instrument calibration definitions.  The matching rules are 
+expressed as SQLAlchemy database queries against a DRAGONS maintained sqlite
+database.
 
-## Installation
 
-The `FitsStorage` installation expects `GeminiCalMgr` to be checked out as that
-folder name alongside the `FitsStorage` folder.  It will then copy the files from
- there to the target host when installing the FitsStore.
+## Calibration Checking
 
-In future, this will be replaced by a github checkout of a specific tag/etc and
-eventually installing from a python package repo.
+When you have a calibration file that doesn't match a target file when you
+expect it to, this library provides the tool `calcheck` for inspecting the
+query for mismatches to diagnose it.  It does a best-effort job but can be
+helpful.  You can supply `auto` to infer the calibration type, or you can
+replace `auto` below with `flat`, `bias`, etc.
+
+  Useage: calcheck <target file> auto <calibration file>
+
 
 ## DRAGONS Dependencies
 
