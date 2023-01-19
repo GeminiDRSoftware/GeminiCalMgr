@@ -103,7 +103,7 @@ def check_present(session, filename):
 
 def need_to_add_diskfile(session, fileobj, fullpath=None):
     """
-    Check if we need to add a diskfile record for the given :class:`~fitsstoragedb.orm.file.File` record.
+    Check if we need to add a diskfile record for the given :class:`~gemini_obs_db.orm.file.File` record.
 
     Parameters
     ----------

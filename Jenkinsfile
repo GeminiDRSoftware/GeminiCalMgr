@@ -33,19 +33,19 @@ pipeline {
 
 //                 checkout scm
 
-                echo 'Checking Out FitsStorageDB'
-                dir('FitsStorageDB') {
-                    git url: 'git@gitlab.gemini.edu:DRSoftware/FitsStorageDB.git',
-                    branch: 'master',
-                    credentialsId: '23171fd7-22a8-459a-bbf3-ec2e65ec56b7'
-                }
-
-                echo 'Checking Out GeminiCalMgr'
-                dir('GeminiCalMgr') {
-                    git url: 'git@gitlab.gemini.edu:DRSoftware/GeminiCalMgr.git',
-                    branch: 'master',
-                    credentialsId: '23171fd7-22a8-459a-bbf3-ec2e65ec56b7'
-                }
+//                 echo 'Checking Out FitsStorageDB'
+//                 dir('FitsStorageDB') {
+//                     git url: 'git@gitlab.gemini.edu:DRSoftware/FitsStorageDB.git',
+//                     branch: 'master',
+//                     credentialsId: '23171fd7-22a8-459a-bbf3-ec2e65ec56b7'
+//                 }
+//
+//                 echo 'Checking Out GeminiCalMgr'
+//                 dir('GeminiCalMgr') {
+//                     git url: 'git@gitlab.gemini.edu:DRSoftware/GeminiCalMgr.git',
+//                     branch: 'master',
+//                     credentialsId: '23171fd7-22a8-459a-bbf3-ec2e65ec56b7'
+//                 }
             }
 
         }
@@ -61,7 +61,7 @@ pipeline {
                     '''
                     def postgres = docker.image('postgres:12').withRun(" --network geminicalmgr-jenkins --name geminicaldb-jenkins -e POSTGRES_USER=fitsdata -e POSTGRES_PASSWORD=fitsdata -e POSTGRES_DB=fitsdata") { c ->
                         try {
-                            docker.image('gemini/geminicalmgr:jenkins').inside(" -v reports:/data/reports -v /data/pytest_tmp:/tmp  --network geminicalmgr-jenkins -e USE_AS_ARCHIVE=False -e STORAGE_ROOT=/tmp/jenkins_pytest/dataflow -e FITS_DB_SERVER=\"fitsdata:fitsdata@geminicaldb-jenkins\" -e PYTEST_SERVER=http://archive-jenkins -e TEST_IMAGE_PATH=/tmp/archive_test_images -e TEST_IMAGE_CACHE=/tmp/cached_archive_test_images -e BLOCKED_URLS=\"\" -e CREATE_TEST_DB=False -e PYTHONPATH=/opt/FitsStorage:/opt/DRAGONS:/opt/FitsStorageDB:/opt/GeminiCalMgr") {
+                            docker.image('gemini/geminicalmgr:jenkins').inside(" -v reports:/data/reports -v /data/pytest_tmp:/tmp  --network geminicalmgr-jenkins -e USE_AS_ARCHIVE=False -e STORAGE_ROOT=/tmp/jenkins_pytest/dataflow -e FITS_DB_SERVER=\"fitsdata:fitsdata@geminicaldb-jenkins\" -e PYTEST_SERVER=http://archive-jenkins -e TEST_IMAGE_PATH=/tmp/archive_test_images -e TEST_IMAGE_CACHE=/tmp/cached_archive_test_images -e BLOCKED_URLS=\"\" -e CREATE_TEST_DB=False -e PYTHONPATH=/opt/FitsStorage:/opt/DRAGONS:/opt/GeminiObsDB:/opt/GeminiCalMgr") {
                                 sh 'python3 /opt/FitsStorageDB/gemini_obs_db/scripts/create_tables.py'
                                 echo "Running tests against docker containers"
                                 sh  '''

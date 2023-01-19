@@ -95,14 +95,14 @@ RUN mkdir -p /usr/share/httpd/.specutils && \
     chmod oug+rwx /usr/share/httpd/.specutils
 
 # COPY STUFFS
-ENV PYTHONPATH /opt/DRAGONS:/opt/FitsStorageDB:/opt/GeminiCalMgr
+ENV PYTHONPATH /opt/DRAGONS:/opt/GeminiObsDB:/opt/GeminiCalMgr
+RUN cd /opt && git clone --branch main https://github.com/GeminiDRSoftware/GeminiCalMgr.git
+RUN cd /opt && git clone --branch main https://github.com/GeminiDRSoftware/GeminiObsDB.git
 RUN cd /opt && git clone --branch master https://github.com/GeminiDRSoftware/DRAGONS.git
 
 # Install the configuration file for the Jenkins FitsStore containers
 #COPY FitsStorageConfig/configs/jenkins_fitsstorage.conf /etc/fitsstorage.conf
 
-COPY FitsStorageDB /opt/FitsStorageDB
-COPY GeminiCalMgr /opt/GeminiCalMgr
 WORKDIR /opt/GeminiCalMgr
 
 #RUN yum -y install libnsl
@@ -113,7 +113,7 @@ WORKDIR /opt/GeminiCalMgr
 #    -I /usr/include/cfitsio -L/usr/lib64/
 
 # COPY FitsStorage/fitsverify /opt/fitsverify
-COPY FitsStorageDB/docker/wait-for-postgres.sh /
+COPY /opt/GeminiObsDB/docker/wait-for-postgres.sh /
 RUN chmod a+x /wait-for-postgres.sh
 
 # CYTHON STEP FOR DRAGONS
