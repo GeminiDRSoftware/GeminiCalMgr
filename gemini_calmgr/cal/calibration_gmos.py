@@ -261,7 +261,6 @@ class CalibrationGMOS(Calibration):
         -------
             list of :class:`fits_storage.orm.header.Header` records that match the criteria
         """
-        print("constructing dark query")
         if howmany is None:
             howmany = 1 if processed else 15
 
