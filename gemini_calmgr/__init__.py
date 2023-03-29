@@ -1,4 +1,4 @@
-__version__ = '1.1.22'
+from .version import __version__
 
 
 _all__ = ["gemini_metadata_utils",]
