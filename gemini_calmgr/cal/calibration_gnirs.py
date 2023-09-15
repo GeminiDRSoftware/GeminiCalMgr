@@ -190,7 +190,7 @@ class CalibrationGNIRS(Calibration):
         if 'PINHOLE' in self.types:
             query = query.filter(Gnirs.focal_plane_mask.contains(self.descriptors['focal_plane_mask'].split("&")[1]))
         else:
-            query = query.match_descriptor(Gnirs.focal_plane_mask)
+            query = query.match_descriptors(Gnirs.focal_plane_mask)
 
         return query
 
