@@ -175,20 +175,24 @@ class CalibrationGNIRS(Calibration):
         :class:`fits_storage.cal.calibration.CalQuery` setup for flats as described that can be
             further refined
         """
-        return (
-            self.get_query()
-            .flat(processed=processed)
-            # Must totally match: disperser, central_wavelength, focal_plane_mask, camera, filter_name, well_depth_setting
-            # update from RM 20130321 - read mode should not be required to match, but well depth should.
-            # For imaging, central wavelength and disperser are not required to match
-            .match_descriptors(Gnirs.disperser,
-                               Gnirs.focal_plane_mask,
+
+        # Must totally match: disperser, central_wavelength, focal_plane_mask, camera, filter_name, well_depth_setting
+        # update from RM 20130321 - read mode should not be required to match, but well depth should.
+        # For imaging, central wavelength and disperser are not required to match
+        query = self.get_query() \
+                    .flat(processed=processed) \
+                    .match_descriptors(Gnirs.disperser,
                                Gnirs.camera,
                                Gnirs.filter_name,
-                               Gnirs.well_depth_setting)
-            .if_(self.descriptors['spectroscopy'], 'match_descriptors', Gnirs.disperser)
-            .if_(self.descriptors['spectroscopy'], 'tolerance', central_wavelength=0.001)
-        )
+                               Gnirs.well_depth_setting) \
+                    .if_(self.descriptors['spectroscopy'], 'tolerance', central_wavelength=0.001)
+
+        if 'PINHOLE' in self.types:
+            query = query.filter(Gnirs.focal_plane_mask.contains(self.descriptors['focal_plane_mask'].split("&")[1]))
+        else:
+            query = query.match_descriptor(Gnirs.focal_plane_mask)
+
+        return query
 
     def flat(self, processed=False, howmany=None, return_query=False):
         """
