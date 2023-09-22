@@ -227,7 +227,7 @@ class CalibrationGNIRS(Calibration):
         # And then also in XD modes, it also wants a QH lamp flat for the shorter wavelengths.
         #
         # So, this cal association will give you either IRhigh flats. In some cases, we make
-        # a lamp-off flat applicable to the lamp-on flat to give the subtraciton pairs. 
+        # a lamp-off flat applicable to the lamp-on flat to give the subtraciton pairs.
         # We also have lamp-off flats directly applicable to the science at thermal wavelengths.
         # and we consider QH flats a separate thing.
         #
@@ -332,7 +332,7 @@ class CalibrationGNIRS(Calibration):
         else:
             return query.all(howmany)
 
-    def pinhole_mask(self, processed=False, howmany=None, return_query=False):
+    def pinhole(self, processed=False, howmany=None, return_query=False):
         """
         Find the optimal GNIRS Pinhole Mask for this target frame
 
