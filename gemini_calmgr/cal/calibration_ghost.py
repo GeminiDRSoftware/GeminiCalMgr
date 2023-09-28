@@ -5,7 +5,7 @@ from sqlalchemy import or_
 
 from gemini_obs_db.orm.header import Header
 from gemini_obs_db.orm.ghost import Ghost, ArmFieldDispatcher, GHOST_ARMS, GHOST_ARM_DESCRIPTORS
-from gemini_calmgr.cal.calibration import Calibration, not_processed, not_imaging, not_spectroscopy, CalQuery
+from .calibration import Calibration, not_processed, not_imaging, not_spectroscopy, CalQuery
 
 import math
 
@@ -104,10 +104,6 @@ class CalibrationGHOST(Calibration):
                 # acq images don't require a BIAS.
                 require_bias = False
 
-            elif self.descriptors['detector_roi_setting'] == 'Central Stamp':
-                # Anything that's ROI = Central Stamp does not require a bias
-                require_bias = False
-
             if require_bias:
                 self.applicable.append('bias')
                 self.applicable.append('processed_bias')
@@ -126,34 +122,8 @@ class CalibrationGHOST(Calibration):
                 self.applicable.append('processed_arc')
                 self.applicable.append('flat')
                 self.applicable.append('processed_flat')
-                self.applicable.append('spectwilight')
+                # self.applicable.append('spectwilight')
                 self.applicable.append('specphot')
-
-
-            # If it (is imaging) and
-            # (is Imaging focal plane mask) and
-            # (is an OBJECT) and (is not a Twilight) and
-            # is not acq or acqcal
-            # then it needs flats, processed_fringe
-
-            # * per above, GHOST is always spec
-            # if ((self.descriptors['spectroscopy'] == False) and
-            #          (self.descriptors['focal_plane_mask'] == 'Imaging') and
-            #          (self.descriptors['observation_type'] == 'OBJECT') and
-            #          (self.descriptors['object'] != 'Twilight') and
-            #          (self.descriptors['observation_class'] not in ['acq', 'acqCal'])):
-            #
-            #     self.applicable.append('flat')
-            #     self.applicable.append('processed_flat')
-            #     self.applicable.append('processed_fringe')
-            #     # If it's all that and obsclass science, then it needs a photstd
-            #     # need to take care that phot_stds don't require phot_stds for recursion
-            #     if self.descriptors['observation_class'] == 'science':
-            #         self.applicable.append('photometric_standard')
-
-            # If it is MOS then it needs a MASK
-            if 'MOS' in self.types:
-                self.applicable.append('mask')
 
     # @not_imaging
     def arc(self, processed=False, howmany=2, return_query=False):
@@ -202,25 +172,15 @@ class CalibrationGHOST(Calibration):
             # Add the after filter
             filters.append(Header.ut_datetime > self.descriptors['ut_datetime'])
 
-        # # The science amp_read_area must be equal or substring of the cal amp_read_area
-        # # If the science frame uses all the amps, then they must be a direct match as all amps must be there
-        # # - this is more efficient for the DB as it will use the index. Otherwise, the science frame could
-        # # have a subset of the amps thus we must do the substring match
-        # if self.descriptors['detector_roi_setting'] in ['Full Frame', 'Central Spectrum']:
-        #     filters.append(Ghost.amp_read_area == self.descriptors['amp_read_area'])
-        # elif self.descriptors['amp_read_area'] is not None:
-        #         filters.append(Ghost.amp_read_area.contains(self.descriptors['amp_read_area']))
-
         query = (
             self.get_query()
                 .arc(processed)
                 .add_filters(*filters)
                 .match_descriptors(Header.instrument,
                                    Header.camera,
-                                   Ghost.disperser,
-                                   Ghost.filter_name,
+                                   # Ghost.disperser,
+                                   # Ghost.filter_name,
                                    Ghost.res_mode)
-                .tolerance(central_wavelength=0.001)
                 # Absolute time separation must be within 1 year
                 .max_interval(days=365)
             )
@@ -234,7 +194,7 @@ class CalibrationGHOST(Calibration):
         Method to find best GHOST Dark frame for the target dataset.
 
         This will find GHOST darks with matching read speed setting, gain setting, and within 50 seconds
-        exposure time.  It will also matching amp read area.  It matches within 1 year.
+        exposure time.  It matches within 1 year.
 
         Parameters
         ----------
@@ -248,25 +208,11 @@ class CalibrationGHOST(Calibration):
             list of :class:`fits_storage.orm.header.Header` records that match the criteria
         """
         if howmany is None:
-            howmany = 1 if processed else 15
-
-        filters = []
-        # The science amp_read_area must be equal or substring of the cal amp_read_area
-        # If the science frame uses all the amps, then they must be a direct match as all amps must be there
-        # - this is more efficient for the DB as it will use the index. Otherwise, the science frame could
-        # have a subset of the amps thus we must do the substring match
-        if self.descriptors['detector_roi_setting'] in ['Full Frame', 'Central Spectrum']:
-            filters.append(Ghost.amp_read_area == self.descriptors['amp_read_area'])
-        elif self.descriptors['amp_read_area'] is not None:
-                filters.append(Ghost.amp_read_area.contains(self.descriptors['amp_read_area']))
-
-        # Must match exposure time.
-
+            howmany = 1 if processed else 5
 
         query = (
             self.get_query()
                 .dark(processed)
-                .add_filters(*filters)
                 .match_descriptors(Header.instrument,
                                    Ghost.read_speed_setting,
                                    Ghost.gain_setting)
@@ -300,23 +246,15 @@ class CalibrationGHOST(Calibration):
             list of :class:`fits_storage.orm.header.Header` records that match the criteria
         """
         if howmany is None:
-            howmany = 1 if processed else 50
+            howmany = 1 if processed else 5
 
         filters = []
-        # The science amp_read_area must be equal or substring of the cal amp_read_area
-        # If the science frame uses all the amps, then they must be a direct match as all amps must be there
-        # - this is more efficient for the DB as it will use the index. Otherwise, the science frame could
-        # have a subset of the amps thus we must do the substring match
-        if self.descriptors['detector_roi_setting'] in ['Full Frame', 'Central Spectrum']:
-            filters.append(Ghost.amp_read_area == self.descriptors['amp_read_area'])
-        elif self.descriptors['amp_read_area'] is not None:
-            filters.append(Ghost.amp_read_area.contains(self.descriptors['amp_read_area']))
 
         # The Overscan section handling: this only applies to processed biases
         # as raw biases will never be overscan trimmed or subtracted, and if they're
         # processing their own biases, they ought to know what they want to do.
         if processed:
-            if self.descriptors['prepared'] == True:
+            if self.descriptors['prepared']:
                 # If the target frame is prepared, then we match the overscan state.
                 filters.append(Ghost.overscan_trimmed == self.descriptors['overscan_trimmed'])
                 filters.append(Ghost.overscan_subtracted == self.descriptors['overscan_subtracted'])
@@ -334,10 +272,10 @@ class CalibrationGHOST(Calibration):
                 .add_filters(*filters)
                 .match_descriptors(Header.instrument,
                                    Header.camera,
-                                  Ghost.detector_x_bin,
-                                  Ghost.detector_y_bin,
-                                  Ghost.read_speed_setting,
-                                  Ghost.gain_setting)
+                                   Ghost.detector_x_bin,
+                                   Ghost.detector_y_bin,
+                                   Ghost.read_speed_setting,
+                                   Ghost.gain_setting)
                 # Absolute time separation must be within 3 months
                 .max_interval(days=90)
             )
@@ -346,7 +284,41 @@ class CalibrationGHOST(Calibration):
         else:
             return query.all(howmany)
 
-    def imaging_flat(self, processed, howmany, flat_descr, filt, sf=False, return_query=False):
+    def bpm(self, processed=False, howmany=None, return_query=False):
+        """
+        This method identifies the best GHOST BPM to use for the target
+        dataset.
+
+        This will match on bpms for the same instrument
+
+        Parameters
+        ----------
+
+        howmany : int, default 1
+            How many matches to return
+
+        Returns
+        -------
+            list of :class:`fits_storage.orm.header.Header` records that match the criteria
+        """
+        # Default 1 bpm
+        howmany = howmany if howmany else 1
+
+        filters = [Header.ut_datetime <= self.descriptors['ut_datetime']]
+
+        query = self.get_query(include_engineering=True) \
+                    .bpm(processed) \
+                    .add_filters(*filters) \
+                    .match_descriptors(Header.instrument,
+                                       Ghost.arm)
+        results = query.all(howmany)
+
+        if return_query:
+            return results, query
+        else:
+            return results
+
+    def imaging_flat(self, processed, howmany, flat_descr, filt, return_query=False):
         """
         Method to find the best imaging flats for the target dataset
 
@@ -370,8 +342,6 @@ class CalibrationGHOST(Calibration):
             set of filter parameters from the higher level function calling into this helper method
         filt: list
             Additional filter terms to apply from the higher level method
-        sf: bool
-            True for slit flats, else False
 
         Returns
         -------
@@ -382,14 +352,10 @@ class CalibrationGHOST(Calibration):
 
         if processed:
             query = self.get_query().PROCESSED_FLAT()
-        elif sf:
+        else:
             # Find the relevant slit flat
             query = self.get_query().spectroscopy(
                 False).observation_type('FLAT')
-        else:
-            # Imaging flats are twilight flats
-            # Twilight flats are dayCal OBJECT frames with target Twilight
-            query = self.get_query().raw().dayCal().OBJECT().object('Twilight')
         query = (
             query.add_filters(*filt)
                  .match_descriptors(*flat_descr)
@@ -431,54 +397,11 @@ class CalibrationGHOST(Calibration):
         if howmany is None:
             howmany = 1 if processed else 2
 
-        ifu = mos_or_ls = False
-        el_thres = 0.0
-        under_85 = False
-        crpa_thres = 0.0
-        # QAP might not give us these for now. Remove this 'if' later when it does
-        if self.descriptors.get('elevation') is not None:
-            # Spectroscopy flats also have to somewhat match telescope position for flexure, as follows
-            # this is from FitsStorage TRAC #43 discussion with KR 20130425. This code defines the
-            # thresholds and the conditions where they apply
-            try:
-                ifu = self.descriptors['focal_plane_mask'].startswith('IFU')
-                # For IFU, elevation must we within 7.5 degrees
-                el_thres = 7.5
-            except AttributeError:
-                # focal_plane_mask came as None. Leave 'ifu' as False
-                pass
-            try:
-                mos_or_ls = self.descriptors['central_wavelength'] > 0.55 or self.descriptors['disperser'].startswith('R150')
-                # For MOS and LS, elevation must we within 15 degrees
-                el_thres = 15.0
-            except (AttributeError, TypeError):
-                # Just in case disperser is None
-                pass
-            under_85 = self.descriptors['elevation'] < 85
-
-            # crpa*cos(el) must be within el_thres degrees, ie crpa must be within el_thres / cos(el)
-            # when el=90, cos(el) = 0 and the range is infinite. Only check at lower elevations
-            if under_85:
-                crpa_thres = el_thres / math.cos(math.radians(self.descriptors['elevation']))
-
-            # unset condition flags if thresholds are zero (bug in calibration.py necessitates this)
-            if crpa_thres == 0: under_85 = False
-            if el_thres == 0: ifu = mos_or_ls = False
-
         query = (
             self.get_query()
                 .flat(processed)
                 .add_filters(*filt)
                 .match_descriptors(*flat_descr)
-            # Central wavelength is in microns (by definition in the DB table).
-                .tolerance(central_wavelength=0.001)
-
-            # Spectroscopy flats also have to somewhat match telescope position for flexure, as follows
-            # this is from FitsStorage TRAC #43 discussion with KR 20130425
-            # See the comments above to explain the thresholds
-                .tolerance(condition = ifu, elevation=el_thres)
-                .tolerance(condition = mos_or_ls, elevation=el_thres)
-                .tolerance(condition = under_85, cass_rotator_pa=crpa_thres)
 
             # Absolute time separation must be within 6 months
                 .max_interval(days=180)
@@ -492,12 +415,9 @@ class CalibrationGHOST(Calibration):
         """
         Method to find the best GHOST FLAT fields for the target dataset
 
-        This will find GHOST flats with matching read speed setting, gain setting, filter name,
-        res mode, focal plane mask, and disperser.  It will search for matching spectroscopy setting
-        and matching amp read area.  Then additional filtering is done based on logic either for
-        imaging flats or spectroscopy flats, as per :meth:`spectroscopy_flat` and :meth:`imaging_flat`.
-
-        It matches within 180 days
+        This will find GHOST (echelle) flats with matching read speed setting,
+        gain setting, filter name, and res mode.
+        Then additional filtering is done as per :meth:`spectroscopy_flat`.
 
         Parameters
         ----------
@@ -518,28 +438,17 @@ class CalibrationGHOST(Calibration):
         flat_descriptors = (
             Header.instrument,
             Header.camera,
-            Ghost.filter_name,
             Ghost.read_speed_setting,
             Ghost.gain_setting,
             Ghost.res_mode,
             Header.spectroscopy,
-            # Focal plane mask must match for imaging too... To avoid daytime thru-MOS mask imaging "flats"
-            Ghost.focal_plane_mask,
-            Ghost.disperser, # this can be common-mode as imaging is always 'MIRROR'
             )
 
-        # Not needed for GMOS?!
-        # # The science amp_read_area must be equal or substring of the cal amp_read_area
-        # # If the science frame uses all the amps, then they must be a direct match as all amps must be there
-        # # - this is more efficient for the DB as it will use the index. Otherwise, the science frame could
-        # # have a subset of the amps thus we must do the substring match
-        # if self.descriptors['detector_roi_setting'] in ['Full Frame', 'Central Spectrum']:
-        #     flat_descriptors = flat_descriptors + (Ghost.amp_read_area,)
-        # elif self.descriptors['amp_read_area'] is not None:
-        #     filters.append(Ghost.amp_read_area.contains(self.descriptors['amp_read_area']))
-
         # as above, GHOST is spect
-        if True:  # self.descriptors['spectroscopy']:
+        if self.descriptors['spectroscopy']:
+            # Only 1x1 flats should be used
+            #filters = [Ghost.detector_x_bin == 1,
+            #          Ghost.detector_y_bin == 1]
             return self.spectroscopy_flat(processed, howmany, flat_descriptors, filters, return_query=return_query)
         else:
             return self.imaging_flat(processed, howmany, flat_descriptors, filters, return_query=return_query)
@@ -574,28 +483,23 @@ class CalibrationGHOST(Calibration):
         if 'SLITV' in self.types:
             return self.flat(True, howmany, return_query=return_query)
 
-        filters = []
-        filters.append(Header.spectroscopy == False)
+        filters = (Ghost.arm == 'slitv',)
 
         # Common descriptors for both types of flat
         # Must totally match instrument, detector_x_bin, detector_y_bin, filter
         flat_descriptors = (
             Header.instrument,
-            Ghost.filter_name,
-            Ghost.read_speed_setting,
-            Ghost.gain_setting,
             Ghost.res_mode,
-            Ghost.disperser, # this can be common-mode as imaging is always 'MIRROR'
             )
 
         return self.imaging_flat(False, howmany, flat_descriptors, filters,
-                                 sf=True, return_query=return_query)
+                                 return_query=return_query)
 
     def processed_slit(self, howmany=None, return_query=False):
         """
         Method to find the best processed GHOST SLIT for the target dataset
 
-        This will find GHOST processed slits with a 'Sony-ICX674' detector.  It matches the observation
+        This will find GHOST processed slits.  It matches the observation
         type, res mode, and within 30 seconds.  For 'ARC' observation type it matches
         'PROCESSED_UNKNOWN' data, otherwise it matches 'PREPARED' data.
 
@@ -609,15 +513,19 @@ class CalibrationGHOST(Calibration):
         -------
             list of :class:`fits_storage.orm.header.Header` records that match the criteria
         """
-        descripts = (
+        descripts = [
             Header.instrument,
             Header.observation_type,
-            Ghost.res_mode,
-            )
+            Ghost.res_mode
+            ]
 
-        filters = (
-            Ghost.detector_name.contains('ICX674'),
-        )
+        filters = [Ghost.arm == 'slitv']
+
+        # We need to match exposure time for on-sky observations
+        # (the exposure time has been munged in the processed_slit to match
+        # the science exposure that needs it)
+        if self.descriptors['observation_type'] not in ('ARC', 'BIAS', 'FLAT'):
+            filters.append(self.descriptors['exposure_time'] == Ghost.exposure_time_slitv)
 
         query = (
             self.get_query()
@@ -641,9 +549,11 @@ class CalibrationGHOST(Calibration):
 
     def processed_fringe(self, howmany=None, return_query=False):
         """
+        GHOST fringe frames don't exist (yet?)
+
         Method to find the best GHOST processed fringe for the target dataset
 
-        This will find GHOST processed fringes matching the amp read area, filter name, and x and y binning.
+        This will find GHOST processed fringes matching the x and y binning.
         It matches within 1 year.
 
         Parameters
@@ -659,24 +569,13 @@ class CalibrationGHOST(Calibration):
         # Default number to associate
         howmany = howmany if howmany else 1
 
-        filters = []
-        # The science amp_read_area must be equal or substring of the cal amp_read_area
-        # If the science frame uses all the amps, then they must be a direct match as all amps must be there
-        # - this is more efficient for the DB as it will use the index. Otherwise, the science frame could
-        # have a subset of the amps thus we must do the substring match
-        if self.descriptors['detector_roi_setting'] in ['Full Frame', 'Central Spectrum']:
-            filters.append(Ghost.amp_read_area == self.descriptors['amp_read_area'])
-        elif self.descriptors['amp_read_area'] is not None:
-                filters.append(Ghost.amp_read_area.contains(self.descriptors['amp_read_area']))
-
         query = (
             self.get_query()
                 .PROCESSED_FRINGE()
-                .add_filters(*filters)
                 .match_descriptors(Header.instrument,
                                    Ghost.detector_x_bin,
                                    Ghost.detector_y_bin,
-                                   Ghost.filter_name)
+                                   Ghost.res_mode)
                 # Absolute time separation must be within 1 year
                 .max_interval(days=365)
             )
@@ -686,68 +585,7 @@ class CalibrationGHOST(Calibration):
             return query.all(howmany)
 
     # We don't handle processed ones (yet)
-    @not_processed
-    # @not_imaging
-    def spectwilight(self, processed=False, howmany=None, return_query=False):
-        """
-        Method to find the best spectwilight - ie spectroscopy twilight
-        ie MOS / IFU / LS twilight
-
-        This will find GHOST spec twilights matching the amp read area, filter name, disperser,
-        filter plane mask, and x and y binning.  It matches central wavelength within 0.02 microns.
-        It matches within 1 year.
-
-        Parameters
-        ----------
-
-        processed : bool
-            Indicate if we want to retrieve processed or raw spec twilights
-        howmany : int, default 2
-            How many do we want results
-
-        Returns
-        -------
-            list of :class:`fits_storage.orm.header.Header` records that match the criteria
-        """
-        # Default number to associate
-        howmany = howmany if howmany else 2
-
-        filters = []
-        # The science amp_read_area must be equal or substring of the cal amp_read_area
-        # If the science frame uses all the amps, then they must be a direct match as all amps must be there
-        # - this is more efficient for the DB as it will use the index. Otherwise, the science frame could
-        # have a subset of the amps thus we must do the substring match
-        if self.descriptors['detector_roi_setting'] in ['Full Frame', 'Central Spectrum']:
-            filters.append(Ghost.amp_read_area == self.descriptors['amp_read_area'])
-        elif self.descriptors['amp_read_area'] is not None:
-                filters.append(Ghost.amp_read_area.contains(self.descriptors['amp_read_area']))
-
-        query = (
-            self.get_query()
-                # They are OBJECT spectroscopy frames with target twilight
-                .raw().OBJECT().spectroscopy(True).object('Twilight')
-                .add_filters(*filters)
-                .match_descriptors(Header.instrument,
-                                   Ghost.detector_x_bin,
-                                   Ghost.detector_y_bin,
-                                   Ghost.filter_name,
-                                   Ghost.disperser,
-                                   Ghost.focal_plane_mask)
-                # Must match central wavelength to within some tolerance.
-                # We don't do separate ones for dithers in wavelength?
-                # tolerance = 0.02 microns
-                .tolerance(central_wavelength=0.02)
-                # Absolute time separation must be within 1 year
-                .max_interval(days=365)
-            )
-        if return_query:
-            return query.all(howmany), query
-        else:
-            return query.all(howmany)
-
-
-    # We don't handle processed ones (yet)
-    @not_processed
+    # @not_processed
     # @not_imaging
     def specphot(self, processed=False, howmany=None, return_query=False):
         """
@@ -765,109 +603,6 @@ class CalibrationGHOST(Calibration):
 
         processed : bool
             Indicate if we want to retrieve processed or raw spec photometry
-        howmany : int, default 2
-            How many do we want results
-
-        Returns
-        -------
-            list of :class:`fits_storage.orm.header.Header` records that match the criteria
-        """
-        # Default number to associate
-        howmany = howmany if howmany else 4
-
-        filters = []
-        # Must match the focal plane mask, unless the science is a mos mask in which case the specphot is longslit
-        if 'MOS' in self.types:
-            filters.append(Ghost.focal_plane_mask.contains('arcsec'))
-            tol = 0.10 # microns
-        else:
-            filters.append(Ghost.focal_plane_mask == self.descriptors['focal_plane_mask'])
-            tol = 0.05 # microns
-
-        # The science amp_read_area must be equal or substring of the cal amp_read_area
-        # If the science frame uses all the amps, then they must be a direct match as all amps must be there
-        # - this is more efficient for the DB as it will use the index. Otherwise, the science frame could
-        # have a subset of the amps thus we must do the substring match
-        if self.descriptors['detector_roi_setting'] in ['Full Frame', 'Central Spectrum']:
-            filters.append(Ghost.amp_read_area == self.descriptors['amp_read_area'])
-        elif self.descriptors['amp_read_area'] is not None:
-                filters.append(Ghost.amp_read_area.contains(self.descriptors['amp_read_area']))
-
-        query = (
-            self.get_query()
-                # They are OBJECT partnerCal or progCal spectroscopy frames with target not twilight
-                .raw().OBJECT()  # .spectroscopy(True) * per above, they are all spectroscopy
-                .add_filters(Header.observation_class.in_(['partnerCal', 'progCal']),
-                             Header.object != 'Twilight',
-                             *filters)
-                # Found lots of examples where detector binning does not match, so we're not adding those
-                .match_descriptors(Header.instrument,
-                                   Ghost.filter_name,
-                                   Ghost.disperser)
-                # Must match central wavelength to within some tolerance.
-                # We don't do separate ones for dithers in wavelength?
-                .tolerance(central_wavelength=tol)
-                # Absolute time separation must be within 1 year
-                .max_interval(days=365)
-            )
-        if return_query:
-            return query.all(howmany), query
-        else:
-            return query.all(howmany)
-
-    # We don't handle processed ones (yet)
-    @not_processed
-    # @not_spectroscopy
-    def photometric_standard(self, processed=False, howmany=None, return_query=False):
-        """
-        Method to find the best phot_std observation
-
-        This will find GHOST photometric standards matching the filter name.  It must be a partnerCal with
-        a CAL program id.  This matches within 1 day.
-
-        Parameters
-        ----------
-
-        processed : bool
-            Indicate if we want to retrieve processed or raw photometric standards
-        howmany : int, default 4
-            How many do we want results
-
-        Returns
-        -------
-            list of :class:`fits_storage.orm.header.Header` records that match the criteria
-        """
-        # Default number to associate
-        howmany = howmany if howmany else 4
-
-        query = (
-            self.get_query()
-                # They are OBJECT imaging partnerCal frames taken from CAL program IDs
-                .photometric_standard(OBJECT=True, partnerCal=True)
-                .add_filters(Header.program_id.like('G_-CAL%'))
-                .match_descriptors(Header.instrument,
-                                   Ghost.filter_name)
-                # Absolute time separation must be within 1 days
-                .max_interval(days=1)
-            )
-        if return_query:
-            return query.all(howmany), query
-        else:
-            return query.all(howmany)
-
-    # We don't handle processed ones (yet)
-    @not_processed
-    def mask(self, processed=False, howmany=None, return_query=False):
-        """
-        Method to find the MASK (MDF) file
-
-        This will find GHOST masks matching the focal plane mask.
-
-        Parameters
-        ----------
-
-        processed : bool
-            Indicate if we want to retrieve processed or raw masks
         howmany : int, default 1
             How many do we want results
 
@@ -878,27 +613,33 @@ class CalibrationGHOST(Calibration):
         # Default number to associate
         howmany = howmany if howmany else 1
 
-        query = (
-            self.get_query()
-                # They are MASK observation type
-                # The focal_plane_mask of the science file must match the data_label of the MASK file (yes, really...)
-                # Cant force an instrument match as sometimes it just says GHOST in the mask...
-                .add_filters(Header.observation_type == 'MASK',
-                             Header.data_label == self.descriptors['focal_plane_mask'],
-                             Header.instrument.startswith('GHOST'))
-            )
+        query = (self.get_query()
+                 .match_descriptors(Header.instrument,
+                                    Ghost.res_mode,
+                                    # Evantually, these two can probably go
+                                    Ghost.detector_x_bin,
+                                    Ghost.detector_y_bin)
+                 .max_interval(days=365))
+        if processed:
+            query = query.standard(processed)
+        else:
+            query = query.add_filters([Header.observation_class.in_(['partnerCal', 'progCal'])]).raw().OBJECT()
+
         if return_query:
             return query.all(howmany), query
         else:
             return query.all(howmany)
 
-    def get_query(self):
-        """
-        Returns an ``CalQuery`` object, populated with the current session,
-        instrument class, descriptors and the setting for full/not-full query.
+    standard = specphot  # because everything's spectroscopy
 
+    def get_query(self, include_engineering=False):
         """
-        return GHOSTCalQuery(self.session, self.instrClass, self.descriptors, procmode=self.procmode, full_query=self.full_query)
+        Returns a ``GHOSTCalQuery`` object, populated with the current session,
+        instrument class, descriptors and the setting for full/not-full query.
+        """
+        return GHOSTCalQuery(self.session, self.instrClass, self.descriptors,
+                             procmode=self.procmode, full_query=self.full_query,
+                             include_engineering=include_engineering)
 
 
 class GHOSTCalQuery(CalQuery):
