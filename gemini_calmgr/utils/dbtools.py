@@ -345,3 +345,29 @@ def remove_file(session, path):
         for obj in reversed(objects_to_delete):
             session.delete(obj)
         session.commit()
+
+
+def force_not_engineering(session, filename):
+    """
+    Modify the database so that the specified file has the "engineering"
+    flag set to False. This will only be called by localmanager.py after
+    the file has been added.
+
+    Parameters
+    ----------
+    session : :class:`~sqlalchemy.orm.session.Session`
+        Database session to apply changes to
+    filename : str
+        Name of the file in the database
+    """
+    # Since this should only be called on a file that we've just added,
+    # we don't expect to get an error so let's not get fancy catching one
+    file_obj = session.query(File).filter(File.name == filename).one()
+    diskfiles = session.query(DiskFile).filter(DiskFile.file_id == file_obj.id).all()
+    # Look up all headers pointing to the selected diskfiles, add them
+    headers = []
+    for df_obj in diskfiles:
+        headers.extend(session.query(Header).filter(Header.diskfile_id == df_obj.id).all())
+    for header in headers:
+        header.engineering = False
+    session.commit()
