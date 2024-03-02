@@ -24,7 +24,7 @@ copyright = '2021, Paul Hirst, Ricardo Cardenes, Ken Anderson, Oliver Oberdorf'
 author = 'Paul Hirst, Ricardo Cardenes, Ken Anderson, Oliver Oberdorf'
 
 # The full version, including alpha/beta/rc tags
-release = '1.1.0-dev'
+release = '1.1.23'
 
 
 # -- General configuration ---------------------------------------------------
