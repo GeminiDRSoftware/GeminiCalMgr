@@ -615,10 +615,7 @@ class CalibrationGHOST(Calibration):
 
         query = (self.get_query()
                  .match_descriptors(Header.instrument,
-                                    Ghost.res_mode,
-                                    # Evantually, these two can probably go
-                                    Ghost.detector_x_bin,
-                                    Ghost.detector_y_bin)
+                                    Ghost.res_mode)
                  .max_interval(days=365))
         if processed:
             query = query.standard(processed)
