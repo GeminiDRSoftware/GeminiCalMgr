@@ -615,6 +615,7 @@ class CalibrationGHOST(Calibration):
 
         query = (self.get_query()
                  .match_descriptors(Header.instrument,
+                                    Header.camera,
                                     Ghost.res_mode)
                  .max_interval(days=365))
         if processed:
