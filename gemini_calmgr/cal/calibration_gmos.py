@@ -699,7 +699,7 @@ class CalibrationGMOS(Calibration):
 
         # Find the dispersion, assume worst case if we can't match it
         n = 1200.0
-        disperser_values = ['1200', '600', '831', '400', '150']
+        disperser_values = ['1200', '600', '831', '480', '400', '150']
         for dv in disperser_values:
             if dv in self.descriptors['disperser']:
                 n = float(dv)
@@ -1040,7 +1040,7 @@ class CalibrationGMOS(Calibration):
         """
         # Find the dispersion, assume worst case if we can't match it
         n = 1200.0
-        disperser_values = ['1200', '600', '831', '400', '150']
+        disperser_values = ['1200', '600', '831', '480', '400', '150']
         for dv in disperser_values:
             if dv in self.descriptors['disperser']:
                 n = float(dv)
