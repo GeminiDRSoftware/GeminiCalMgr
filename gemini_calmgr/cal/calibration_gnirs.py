@@ -23,7 +23,8 @@ class CalibrationGNIRS(Calibration):
         'disperser',
         'focal_plane_mask',
         'camera',
-        'filter_name'
+        'filter_name',
+        'array_name',
         )
 
     def set_applicable(self):
@@ -111,7 +112,9 @@ class CalibrationGNIRS(Calibration):
         query = self.get_query(include_engineering=True) \
                     .bpm(processed) \
                     .add_filters(*filters) \
-                    .match_descriptors(Header.instrument, Header.detector_binning)
+                    .match_descriptors(Header.instrument, 
+                                       Header.detector_binning,
+                                       Gnirs.array_name)
 
         if return_query:
             return query.all(howmany), query
@@ -148,7 +151,8 @@ class CalibrationGNIRS(Calibration):
                 .match_descriptors(Header.exposure_time,
                                    Gnirs.read_mode,
                                    Gnirs.well_depth_setting,
-                                   Header.coadds)
+                                   Header.coadds,
+                                   Gnirs.array_name)
                 # Absolute time separation must be within 3 months
                 .max_interval(days=90)
             )
@@ -184,7 +188,8 @@ class CalibrationGNIRS(Calibration):
                     .match_descriptors(Gnirs.disperser,
                                Gnirs.camera,
                                Gnirs.filter_name,
-                               Gnirs.well_depth_setting) \
+                               Gnirs.well_depth_setting,
+                               Gnirs.array_name) \
                     .if_(self.descriptors['spectroscopy'], 'tolerance', central_wavelength=0.001)
 
         if 'PINHOLE' in self.types:
@@ -239,11 +244,37 @@ class CalibrationGNIRS(Calibration):
         # We prioritize flats that have the same observation ID as the science, but don't *require* this.
         # If we are interleaving QH/IR flats then that takes precedence and the observation ID preference
         # happens only within each lamp type.
+        #
+        # The prism_motor_steps thing (April 2024) - Sciops found that the prism
+        # mechanism does not re-position precisely enough for the HR-IFU. Thus
+        # they take some dummy flats (marked as AcqCal) and adjust the
+        # definition of the current named prism mechanism position (in steps)
+        # so that the mechanism moves but the PRISM name stays the same.
+        # It can be a different tweak for subsequent observations, but the
+        # science and flat must be taken with the same tweak - ie the same step
+        # count on the mechanism, which is the PRSM_ENG header and now also
+        # the prism_motor_steps descriptor for GNIRS.
+
 
         if howmany is None:
             howmany = 1 if processed else 10
 
         base_query =  self.get_gnirs_flat_query(processed)
+
+        # See prism_motor_steps notes above
+        if self.descriptors.get('prism_motor_steps') and \
+                self.descriptors['focal_plane_mask'] and \
+                'HR-IFU' in self.descriptors['focal_plane_mask']:
+            # prism_motor_steps must match
+            base_query = base_query.match_descriptors(Gnirs.prism_motor_steps)
+
+        # "Sacrificial HR-IFU flats" April-2024. The "dummy" flats described in
+        # the notes above are taken with class acqCal. HR-IFU acqCal flats are
+        # not to be used as flats
+        if self.descriptors['focal_plane_mask'] and \
+                'HR-IFU' in self.descriptors['focal_plane_mask']:
+            base_query.add_filters(Header.observation_class != 'acqCal')
+
 
         if self.descriptors['disperser'] and 'XD' in self.descriptors['disperser']:
             # need QH interleaved with IRHigh
@@ -323,7 +354,8 @@ class CalibrationGNIRS(Calibration):
                                    Gnirs.disperser,
                                    Gnirs.focal_plane_mask,
                                    Gnirs.filter_name,
-                                   Gnirs.camera)
+                                   Gnirs.camera,
+                                   Gnirs.array_name)
                 # Absolute time separation must be within 1 year
                 .max_interval(days=365)
             )
@@ -360,7 +392,8 @@ class CalibrationGNIRS(Calibration):
                 # Must totally match: disperser, central_wavelength, camera, (only for cross dispersed mode?)
                 .match_descriptors(Header.central_wavelength,
                                    Gnirs.disperser,
-                                   Gnirs.camera)
+                                   Gnirs.camera,
+                                   Gnirs.array_name)
                 # Absolute time separation must be within 1 year
                 .max_interval(days=365)
             )
@@ -438,7 +471,8 @@ class CalibrationGNIRS(Calibration):
                                    Gnirs.disperser,
                                    Gnirs.focal_plane_mask,
                                    Gnirs.camera,
-                                   Gnirs.filter_name)
+                                   Gnirs.filter_name,
+                                   Gnirs.array_name)
                 # Usable is not OK for these - may be partly saturated for example
                 .add_filters(or_(Header.qa_state == 'Pass', Header.qa_state == 'Undefined'))
                 # Absolute time separation must be within 1 day
